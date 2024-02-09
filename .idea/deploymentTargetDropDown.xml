@@ -5,6 +5,18 @@
       <entry key="app">
         <State />
       </entry>
+      <entry key="app.googledrivelibrary">
+        <State />
+      </entry>
+      <entry key="app.googledrivelibrarycompose">
+        <State />
+      </entry>
+      <entry key="googledrivelibrarycompose">
+        <State />
+      </entry>
+      <entry key="googledrivelibraryxml">
+        <State />
+      </entry>
     </value>
   </component>
 </project>

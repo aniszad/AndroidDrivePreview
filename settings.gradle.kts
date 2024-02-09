@@ -14,5 +14,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "GoogleDriveLibrary"
-include(":app")
- 
+include(":googledrivelibraryxml")

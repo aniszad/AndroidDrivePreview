@@ -1,0 +1,85 @@
+import com.android.build.api.dsl.Packaging
+
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+}
+
+android {
+    namespace = "com.az.googledrivelibraryxml"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.az.googledrivelibraryxml"
+        minSdk = 24
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    buildFeatures {
+        viewBinding = true
+    }
+
+     packaging {
+        resources.excludes.add("META-INF/DEPENDENCIES")
+        resources.excludes.add("META-INF/LICENSE")
+        resources.excludes.add("META-INF/LICENSE.txt")
+        resources.excludes.add("META-INF/license.txt")
+        resources.excludes.add("META-INF/NOTICE")
+        resources.excludes.add("META-INF/NOTICE.txt")
+        resources.excludes.add("META-INF/notice.txt")
+        resources.excludes.add("META-INF/ASL2.0")
+        resources.excludes.add("META-INF/*.kotlin_module")
+    }
+}
+
+dependencies {
+
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+
+    // google drive :
+    implementation ("com.google.android.gms:play-services-auth:20.7.0")
+    implementation ("com.google.api-client:google-api-client-android:1.32.1")
+    implementation ("com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0")
+    implementation ("com.google.api-client:google-api-client:2.0.0")
+    implementation ("com.google.oauth-client:google-oauth-client-jetty:1.30.4")
+
+    implementation ("com.google.auth:google-auth-library-oauth2-http:1.3.0")
+    implementation ("com.google.http-client:google-http-client-gson:1.42.1")
+
+
+    // SSP and SDP library
+    implementation ("com.intuit.ssp:ssp-android:1.1.0")
+    implementation ("com.intuit.sdp:sdp-android:1.1.0")
+
+
+
+    testImplementation("junit:junit:4.13.2")
+
+
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+}
