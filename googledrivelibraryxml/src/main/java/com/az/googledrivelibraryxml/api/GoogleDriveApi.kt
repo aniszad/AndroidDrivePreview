@@ -9,7 +9,6 @@ import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.google.api.services.drive.model.File
-import com.google.api.services.drive.model.Permission
 import com.google.auth.http.HttpCredentialsAdapter
 import com.google.auth.oauth2.GoogleCredentials
 import kotlinx.coroutines.CoroutineScope
@@ -156,6 +155,7 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
             }.await()
             true
         }catch (e : IOException){
+            Log.e("hehehehhe", e.toString())
             false
         }
     }

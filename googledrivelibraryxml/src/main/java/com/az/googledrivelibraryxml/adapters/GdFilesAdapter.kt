@@ -20,7 +20,7 @@ class GdFilesAdapter(
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private lateinit var fileOptions : FileOptions
-    private lateinit var accessFile : AccessFile
+    private lateinit var accessFileListener : AccessFileListener
     inner class FileViewHolder(binding: GoogleDriveItemLayoutBinding) : RecyclerView.ViewHolder(binding.root) {
         val iconFileType = binding.imFileType
         val btnMore = binding.btnMore
@@ -30,8 +30,11 @@ class GdFilesAdapter(
         val root = binding.root
     }
 
-    interface AccessFile{
-        fun onOpen(fileUrl: String)
+    interface AccessFileListener{
+        fun onOpen(webContentLink: String)
+    }
+    fun setAccessFileListener(accessFileListener: AccessFileListener){
+        this.accessFileListener = accessFileListener
     }
     interface FileOptions{
 
@@ -64,7 +67,7 @@ class GdFilesAdapter(
                         showOptionsMenu(it,currentItem)
                     }
                     root.setOnClickListener {
-                        accessFile.onOpen(currentItem.downloadUrl)
+                        accessFileListener.onOpen(currentItem.webViewLink)
                     }
 
                 }
