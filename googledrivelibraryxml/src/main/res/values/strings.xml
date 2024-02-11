@@ -1,8 +1,0 @@
-<resources>
-    <string name="app_name">GoogleDriveLibraryXML</string>
-    <string name="title">Title</string>
-    <string name="share">Share</string>
-    <string name="download">Download</string>
-    <string name="delete">Delete</string>
-    <string name="create_folder">create folder</string>
-</resources>
