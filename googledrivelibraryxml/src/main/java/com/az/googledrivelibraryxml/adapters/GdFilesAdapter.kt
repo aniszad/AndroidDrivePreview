@@ -1,6 +1,7 @@
 package com.az.googledrivelibraryxml.adapters
 
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,9 +10,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.az.googledrivelibraryxml.R
 import com.az.googledrivelibraryxml.databinding.GoogleDriveItemLayoutBinding
 import com.az.googledrivelibraryxml.models.FileDriveItem
+import com.az.googledrivelibraryxml.models.ItemType
 import com.az.googledrivelibraryxml.models.Permissions
-import com.google.api.services.drive.Drive
-import com.google.api.services.drive.model.Permission
+import kotlin.math.pow
 
 class GdFilesAdapter(
     private val context: Context,
@@ -31,7 +32,9 @@ class GdFilesAdapter(
     }
 
     interface AccessFileListener{
-        fun onOpen(webContentLink: String)
+        fun onOpenFile(webContentLink: String)
+        fun onOpenFolder(folderId: String, folderName : String)
+
     }
     fun setAccessFileListener(accessFileListener: AccessFileListener){
         this.accessFileListener = accessFileListener
@@ -61,13 +64,18 @@ class GdFilesAdapter(
             is FileViewHolder ->{
                 holder.apply {
                     tvFileName.text = currentItem.fileName
-                    tvFileSize.text = currentItem.fileSize.toString()
+                    tvFileSize.text = formatSize(currentItem.size)
                     tvLastEdited.text = currentItem.lastModified
+                    iconFileType.setImageDrawable(setFileIcon(currentItem.fileType))
                     btnMore.setOnClickListener {
                         showOptionsMenu(it,currentItem)
                     }
                     root.setOnClickListener {
-                        accessFileListener.onOpen(currentItem.webViewLink)
+                        if (currentItem.fileType != ItemType.FOLDER){
+                            accessFileListener.onOpenFile(currentItem.webViewLink)
+                        }else{
+                            accessFileListener.onOpenFolder(currentItem.fileId, folderName = currentItem.fileName)
+                        }
                     }
 
                 }
@@ -85,7 +93,6 @@ class GdFilesAdapter(
     private fun showOptionsMenu(anchorView: View, currentItem: FileDriveItem) {
         val popupMenu = PopupMenu(context, anchorView)
         popupMenu.menuInflater.inflate(R.menu.file_options_menu, popupMenu.menu)
-
         popupMenu.menu.findItem(R.id.btn_download).isVisible = permissions.contains(Permissions.USER) || permissions.contains(Permissions.ADMIN)
         popupMenu.menu.findItem(R.id.btn_share).isVisible = permissions.contains(Permissions.USER) || permissions.contains(Permissions.ADMIN)
         popupMenu.menu.findItem(R.id.btn_delete).isVisible = permissions.contains(Permissions.ADMIN)
@@ -110,6 +117,27 @@ class GdFilesAdapter(
 
         popupMenu.show()
     }
+    private fun formatSize(size: Long): String {
 
+        return when{
+            size == 0L ->{""}
+
+            size/1000.0.pow(3.0) >= 1000 ->{
+                "${size/ 1000.0.pow(3.0)} GB"
+            }
+            (size/1000.0.pow(2.0) >= 1000) ->{
+                "${size/1000.0.pow(2.0)} MB"
+            }
+            size/1000 < 1000 ->{
+                "${size/1000} KB"
+            }
+            else ->{""}
+        }
+    }
+
+    private fun setFileIcon(fileType: ItemType): Drawable? {
+        // TODO -- returning a convenient icon for each file type
+        return null
+    }
 
 }

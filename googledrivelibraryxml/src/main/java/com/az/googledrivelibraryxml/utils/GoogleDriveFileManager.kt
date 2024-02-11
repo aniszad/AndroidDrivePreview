@@ -2,12 +2,15 @@ package com.az.googledrivelibraryxml.utils
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.net.Uri
-import android.util.Log
 import android.view.Menu
-import android.view.MenuInflater
-import android.widget.Toolbar
-import androidx.core.content.ContextCompat.startActivity
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.appcompat.widget.SearchView
+import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.az.googledrivelibraryxml.R
@@ -32,15 +35,16 @@ class GoogleDriveFileManager(
     private var googleDriveApi: GoogleDriveApi =
         GoogleDriveApi(jsonCredentialsPath = jsonCredentialsPath, appName = applicationName)
     private val scope = CoroutineScope(Dispatchers.IO)
-
-    private var openFileByIntent = true
-
+    private lateinit var pathTextView : TextView
     // paths
-    private val currentPath = rootFileId
+    private val currentIdsPath = mutableListOf<String>()
+    private var currentNamesPath = mutableListOf("root")
     private lateinit var toolbar: Toolbar
 
 
+
     init {
+        currentIdsPath.add(rootFileId)
         getFiles(rootFileId)
     }
 
@@ -75,10 +79,8 @@ class GoogleDriveFileManager(
 
     override fun onDelete(fileId: String) {
         scope.launch(Dispatchers.IO) {
-            Log.e("hehehehhe", fileId)
             val isDeleted = googleDriveApi.deleteFolder(fileId)
-            Log.e("hehehehhe", isDeleted.toString())
-            getFiles(currentPath)
+            getFiles(currentIdsPath.last())
         }
     }
 
@@ -89,13 +91,36 @@ class GoogleDriveFileManager(
         sharingIntent.putExtra(Intent.EXTRA_TEXT, link)
         context.startActivity(Intent.createChooser(sharingIntent, "Share File Link"))
     }
-    override fun onOpen(webContentLink: String) {
+    override fun onOpenFile(webContentLink: String) {
         openFileFromDrive(webContentLink)
     }
+    override fun onOpenFolder(folderId: String, folderName : String) {
+        currentIdsPath.add(folderId)
+        currentNamesPath.add(folderName)
+        setPathView(folderName)
+        getFiles(folderId)
+    }
 
+    private fun goToPreviousFolder(){
+        currentIdsPath.remove(currentIdsPath.last())
+        currentNamesPath.remove(currentNamesPath.last())
+        setPathView(currentNamesPath.last())
+        getFiles(currentIdsPath.last())
+    }
 
-
-
+    private fun setPathView(folderName: String) {
+        if (::pathTextView.isInitialized){
+            var formattedPath = ""
+            for (name in currentNamesPath){
+                formattedPath += buildString {
+                    append("/")
+                    append(folderName)
+                }
+            }
+            this.pathTextView.text = formattedPath
+        }
+        toolbar.title = folderName
+    }
 
     private fun openFileFromDrive(webContentLink: String) {
         val intent = Intent(Intent.ACTION_VIEW)
@@ -120,29 +145,53 @@ class GoogleDriveFileManager(
             LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         recyclerView.adapter = adapter
     }
+    fun setPathTextView(textView: TextView){
+        this.pathTextView = textView
+    }
     fun setAccessFileListener(accessFileListener: AccessFileListener){
         adapter.setAccessFileListener(accessFileListener)
     }
-
     fun setActionBar(toolbar: Toolbar) {
-            // Inflate the menu XML file into the Toolbar
+        // Inflate the menu resource
+        this.toolbar = toolbar
         toolbar.inflateMenu(R.menu.toolbar_menu)
-        toolbar.title = "Something"
+        toolbar.navigationIcon = ContextCompat.getDrawable(context, R.drawable.icon_arrow_left)
+        toolbar.setNavigationOnClickListener {
+            goToPreviousFolder()
+        }
+        toolbar.title = "Title"
+        setSearchViewStyle(toolbar.menu)
 
-            // Optionally, handle menu item clicks
-            toolbar.setOnMenuItemClickListener { menuItem ->
-                when (menuItem.itemId) {
-                    R.id.btn_create_folder -> {
-                        // Handle action_item1 click
-                        true
-                    }
-                    R.id.btn_search -> {
-                        // Handle action_item2 click
-                        true
-                    }
-                    else -> false
+        // Set menu item click listener
+        toolbar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.btn_create_folder -> {
+                    // Handle menu item 1 click
+                    true
                 }
+                R.id.btn_search -> {
+                    // Handle menu item 2 click
+                    true
+                }
+                else -> false
             }
+        }
+    }
+
+
+    // Style customization -------------------------------------------------------------------------
+    private fun setSearchViewStyle(menu: Menu) {
+        val searchItem = menu.findItem(R.id.btn_search)
+        val searchView = searchItem.actionView as SearchView
+        searchView.queryHint = buildString { append("search") }
+        val search = searchItem.actionView as SearchView
+        val editText = search.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
+        editText.setTextColor(ContextCompat.getColor(context, R.color.black))
+        editText.setHintTextColor(ContextCompat.getColor(context, android.R.color.darker_gray))
+        val closeButton = search.findViewById<ImageView>(androidx.appcompat.R.id.search_close_btn)
+        closeButton.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.black))
+        val searchButton = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_button)
+        searchButton.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.black))
     }
 
 }

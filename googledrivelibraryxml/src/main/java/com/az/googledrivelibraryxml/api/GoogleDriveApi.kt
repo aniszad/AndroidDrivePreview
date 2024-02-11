@@ -59,16 +59,21 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
             }
             val results = files.await()
             val queryResultList = mutableListOf<FileDriveItem>()
-            Log.i("haha", results.files[0].toString())
+            Log.i("haha", results.files[1].toString())
             for (file in results.files) {
                 queryResultList.add(
                     FileDriveItem(
                         fileId = file.id,
                         fileName = file.name,
                         fileType = fileOrDirectory(file.mimeType),
-                        size = file.size.toLong(),
+                        size = if (fileOrDirectory(file.mimeType) == ItemType.FILE){
+                            file.getSize()
+                        }else{
+                            0L
+                        },
                         lastModified = file.modifiedTime.toString(),
                         downloadUrl = if (fileOrDirectory(file.mimeType) == ItemType.FILE){
+
                             file.webContentLink
                         }else{
                             ""
@@ -87,6 +92,9 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
             null
         }
     }
+
+
+
     suspend fun queryDriveFiles(folderId: String, fileNameQuery: String): List<FileDriveItem>? {
         return try {
             val scope = CoroutineScope(Dispatchers.IO)
