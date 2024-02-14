@@ -59,13 +59,12 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
             }
             val results = files.await()
             val queryResultList = mutableListOf<FileDriveItem>()
-            Log.i("haha", results.files[1].toString())
             for (file in results.files) {
                 queryResultList.add(
                     FileDriveItem(
                         fileId = file.id,
                         fileName = file.name,
-                        fileType = fileOrDirectory(file.mimeType),
+                        mimeType = (file.mimeType),
                         size = if (fileOrDirectory(file.mimeType) == ItemType.FILE){
                             file.getSize()
                         }else{
@@ -111,7 +110,7 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
                     FileDriveItem(
                         fileId = file.id,
                         fileName = file.name,
-                        fileType = fileOrDirectory(file.mimeType),
+                        mimeType = (file.mimeType),
                         size = file.size.toLong(),
                         lastModified = file.modifiedTime?.toString() ?: "",
                         downloadUrl = if (fileOrDirectory(file.mimeType) == ItemType.FILE) {

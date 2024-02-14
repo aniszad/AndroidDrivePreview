@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.net.Uri
+import android.util.Log
 import android.view.Menu
 import android.widget.EditText
 import android.widget.ImageView
@@ -45,10 +46,10 @@ class GoogleDriveFileManager(
 
     init {
         currentIdsPath.add(rootFileId)
-        getFiles(rootFileId)
     }
 
     private fun getFiles(rootFileId: String){
+        adapter.showLoading()
         try {
             scope.launch {
                 val files = googleDriveApi.getDriveFiles(rootFileId)
@@ -58,32 +59,31 @@ class GoogleDriveFileManager(
             }
 
         } catch (e: IOException) {
-            // Handle the exception if needed
+            Log.e("error-getFiles()", e.message.toString())
         }catch (e: Exception) {
-            // Handle the exception if needed
+            Log.e("error-getFiles()", e.message.toString())
         }
     }
-
     private fun updateRecyclerView(files: List<FileDriveItem>?) {
-        if (files!=null) adapter.updateData(files)
+        if (files!=null){
+            adapter.updateData(files)
+            adapter.hideLoading()
+        }
 
     }
 
     override fun onDownload(fileId: String) {
 
     }
-
     override fun onShare(webViewLink: String) {
         shareFile(webViewLink)
     }
-
     override fun onDelete(fileId: String) {
         scope.launch(Dispatchers.IO) {
             val isDeleted = googleDriveApi.deleteFolder(fileId)
             getFiles(currentIdsPath.last())
         }
     }
-
     private fun shareFile(link: String) {
         val sharingIntent = Intent(Intent.ACTION_SEND)
         sharingIntent.type = "text/plain"
@@ -100,7 +100,6 @@ class GoogleDriveFileManager(
         setPathView(folderName)
         getFiles(folderId)
     }
-
     private fun goToPreviousFolder(){
         currentIdsPath.remove(currentIdsPath.last())
         currentNamesPath.remove(currentNamesPath.last())
@@ -108,6 +107,7 @@ class GoogleDriveFileManager(
         getFiles(currentIdsPath.last())
     }
 
+    // setting the path text ("root/folder1/folder2") if the view is provided
     private fun setPathView(folderName: String) {
         if (::pathTextView.isInitialized){
             var formattedPath = ""
@@ -121,7 +121,6 @@ class GoogleDriveFileManager(
         }
         toolbar.title = folderName
     }
-
     private fun openFileFromDrive(webContentLink: String) {
         val intent = Intent(Intent.ACTION_VIEW)
         intent.data = Uri.parse(webContentLink)
@@ -135,23 +134,26 @@ class GoogleDriveFileManager(
         }
     }
 
-
     // User Input ------------------------------------------------------------
-    fun setRecyclerView(recyclerView: RecyclerView) {
-        adapter = GdFilesAdapter(context, listOf(), listOf(Permissions.ADMIN))
+    fun setRecyclerView(recyclerView: RecyclerView): GoogleDriveFileManager {
+        adapter = GdFilesAdapter(context, emptyList(), listOf(Permissions.ADMIN))
         adapter.setFileOptionsInterface(this@GoogleDriveFileManager)
         adapter.setAccessFileListener(this@GoogleDriveFileManager)
         recyclerView.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         recyclerView.adapter = adapter
+        getFiles(rootFileId)
+        return this@GoogleDriveFileManager
     }
-    fun setPathTextView(textView: TextView){
+    fun setPathTextView(textView: TextView): GoogleDriveFileManager {
         this.pathTextView = textView
+        return this@GoogleDriveFileManager
     }
-    fun setAccessFileListener(accessFileListener: AccessFileListener){
+    fun setAccessFileListener(accessFileListener: AccessFileListener): GoogleDriveFileManager {
         adapter.setAccessFileListener(accessFileListener)
+        return this@GoogleDriveFileManager
     }
-    fun setActionBar(toolbar: Toolbar) {
+    fun setActionBar(toolbar: Toolbar): GoogleDriveFileManager {
         // Inflate the menu resource
         this.toolbar = toolbar
         toolbar.inflateMenu(R.menu.toolbar_menu)
@@ -176,6 +178,7 @@ class GoogleDriveFileManager(
                 else -> false
             }
         }
+        return this@GoogleDriveFileManager
     }
 
 

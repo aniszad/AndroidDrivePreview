@@ -13,9 +13,14 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val gdm = GoogleDriveFileManager(this@MainActivity, "res/raw/credentials.json", "test", "1ZEmBUIPWUXr_nae82N7qQHudIFwaxRe5")
+        val gdm = GoogleDriveFileManager(
+            this@MainActivity,
+            "res/raw/credentials.json",
+            "test",
+            "1ZEmBUIPWUXr_nae82N7qQHudIFwaxRe5"
+        )
         gdm.setRecyclerView(binding.recyclerView)
-        gdm.setActionBar(binding.toolbar)
+            .setActionBar(binding.toolbar)
 
 
     }

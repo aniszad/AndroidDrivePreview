@@ -2,16 +2,21 @@ package com.az.googledrivelibraryxml.adapters
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.az.googledrivelibraryxml.R
 import com.az.googledrivelibraryxml.databinding.GoogleDriveItemLayoutBinding
+import com.az.googledrivelibraryxml.databinding.LoadingBarLayoutBinding
 import com.az.googledrivelibraryxml.models.FileDriveItem
 import com.az.googledrivelibraryxml.models.ItemType
 import com.az.googledrivelibraryxml.models.Permissions
+import java.text.SimpleDateFormat
+import java.util.Locale
 import kotlin.math.pow
 
 class GdFilesAdapter(
@@ -22,14 +27,16 @@ class GdFilesAdapter(
 
     private lateinit var fileOptions : FileOptions
     private lateinit var accessFileListener : AccessFileListener
+    private var isLoading = true
     inner class FileViewHolder(binding: GoogleDriveItemLayoutBinding) : RecyclerView.ViewHolder(binding.root) {
         val iconFileType = binding.imFileType
         val btnMore = binding.btnMore
         val tvFileName = binding.tvFileName
         val tvFileSize = binding.tvFileSize
-        val tvLastEdited = binding.tvLastEdited
+        val tvCreationDate = binding.tvCreationDate
         val root = binding.root
     }
+    inner class LoadingBarViewHolder(binding : LoadingBarLayoutBinding) : RecyclerView.ViewHolder(binding.root)
 
     interface AccessFileListener{
         fun onOpenFile(webContentLink: String)
@@ -45,33 +52,64 @@ class GdFilesAdapter(
         fun onShare(webViewLink: String)
         fun onDelete(fileId:String)
     }
-
     fun setFileOptionsInterface(fileOptions: FileOptions){
         this.fileOptions = fileOptions
     }
-
+    override fun getItemViewType(position: Int): Int {
+        return if(isLoading){
+            NO_DATA_VIEW_TYPE
+        }else{
+            DATA_VIEW_TYPE
+        }
+    }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        return FileViewHolder(GoogleDriveItemLayoutBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        return when (viewType){
+            NO_DATA_VIEW_TYPE->{
+                LoadingBarViewHolder(LoadingBarLayoutBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+                )
+                )
+            }
+            DATA_VIEW_TYPE -> {
+                FileViewHolder(GoogleDriveItemLayoutBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+            }
+            else -> {
+                LoadingBarViewHolder(LoadingBarLayoutBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+                )
+            }
+        }
     }
-
     override fun getItemCount(): Int {
-        return filesList.size
+        return if (this.filesList.isEmpty()){
+            1
+        }else{
+            filesList.size
+        }
     }
-
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val currentItem = filesList[position]
         when(holder){
             is FileViewHolder ->{
+                val currentItem = filesList[position]
                 holder.apply {
+
                     tvFileName.text = currentItem.fileName
                     tvFileSize.text = formatSize(currentItem.size)
-                    tvLastEdited.text = currentItem.lastModified
-                    iconFileType.setImageDrawable(setFileIcon(currentItem.fileType))
+                    tvCreationDate.text = formatDate(currentItem.lastModified)
+                    iconFileType.setImageDrawable(ContextCompat.getDrawable(
+                        context,
+                        getIconFromMimeType(currentItem.mimeType)
+                    ))
                     btnMore.setOnClickListener {
                         showOptionsMenu(it,currentItem)
                     }
                     root.setOnClickListener {
-                        if (currentItem.fileType != ItemType.FOLDER){
+                        if (fileOrDirectory(currentItem.mimeType) != ItemType.FOLDER){
                             accessFileListener.onOpenFile(currentItem.webViewLink)
                         }else{
                             accessFileListener.onOpenFolder(currentItem.fileId, folderName = currentItem.fileName)
@@ -83,12 +121,10 @@ class GdFilesAdapter(
         }
 
     }
-
     fun updateData(files: List<FileDriveItem>) {
         this.filesList = files
         notifyDataSetChanged()
     }
-
     // Non adapter functions
     private fun showOptionsMenu(anchorView: View, currentItem: FileDriveItem) {
         val popupMenu = PopupMenu(context, anchorView)
@@ -134,10 +170,52 @@ class GdFilesAdapter(
             else ->{""}
         }
     }
+    private fun getIconFromMimeType(mimeType: String): Int {
+        if (fileOrDirectory(mimeType) == ItemType.FOLDER){
+            return R.drawable.icon_folder
+        }
+        return when (mimeType) {
+            "application/pdf" -> R.drawable.icon_pdf
+            "image/gif" -> R.drawable.icon_gif
+            "audio/mpeg" -> R.drawable.icon_mp3
+            "video/x-msvideo" -> R.drawable.icon_avi
+            "video/x-matroska" -> R.drawable.icon_mkv
+            "application/vnd.ms-powerpoint" -> R.drawable.icon_ppt
+            "application/vnd.ms-excel" -> R.drawable.icon_xls
+            "application/zip" -> R.drawable.icon_zip
+            "image/vnd.adobe.photoshop" -> R.drawable.icon_psd
+            "text/plain" -> R.drawable.icon_txt
+            "application/illustrator" -> R.drawable.icon_ai
+            else -> R.drawable.icon_other // Replace with a default icon
+        }
+    }
+    fun formatDate(inputDateString: String): String{
 
-    private fun setFileIcon(fileType: ItemType): Drawable? {
-        // TODO -- returning a convenient icon for each file type
-        return null
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+        val date = inputFormat.parse(inputDateString)
+        return date?.let { outputFormat.format(it) } ?: ""
     }
 
+    private fun fileOrDirectory(mimeType: String): ItemType {
+        return if (mimeType == "application/vnd.google-apps.folder"){
+            ItemType.FOLDER
+        }else{
+            ItemType.FILE
+        }
+    }
+    fun showLoading() {
+        this.filesList = emptyList()
+        isLoading = true
+        notifyDataSetChanged()
+    }
+    fun hideLoading() {
+        isLoading = false
+        notifyDataSetChanged()
+    }
+    companion object{
+        const val DATA_VIEW_TYPE = 1
+        const val NO_DATA_VIEW_TYPE = 0
+    }
 }

@@ -5,7 +5,7 @@ import java.sql.Timestamp
 open class FileSystemItem(
     val name: String,
     val path: String,
-    val type: ItemType,
+    val type: String,
     val fileSize : Long,
     var timestamp: Timestamp = Timestamp(0L),
 )
