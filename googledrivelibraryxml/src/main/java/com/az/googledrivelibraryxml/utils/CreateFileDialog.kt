@@ -30,7 +30,8 @@ class CreateFileDialog(private val context: Context) {
         mCreateFolderDialog.show()
     }
 
-    private fun hideCreateFolderDialog(){
+    fun hideCreateFolderDialog(){
         this.mCreateFolderDialog.hide()
     }
+
 }

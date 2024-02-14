@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.net.Uri
-import android.util.Log
 import android.view.Menu
 import android.widget.EditText
 import android.widget.ImageView
@@ -20,11 +19,9 @@ import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.AccessFileListener
 import com.az.googledrivelibraryxml.api.GoogleDriveApi
 import com.az.googledrivelibraryxml.models.FileDriveItem
 import com.az.googledrivelibraryxml.models.Permissions
-import com.google.api.services.drive.Drive.Files.Create
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.IOException
 
 class GoogleDriveFileManager(
     private val context: Context,
@@ -42,6 +39,7 @@ class GoogleDriveFileManager(
     private val currentIdsPath = mutableListOf<String>()
     private var currentNamesPath = mutableListOf("root")
     private lateinit var toolbar: Toolbar
+    private val createFolderDialog =  CreateFileDialog(context)
 
 
 
@@ -176,8 +174,7 @@ class GoogleDriveFileManager(
     }
 
     private fun showFileCreateDialog() {
-        val createFileDialog =  CreateFileDialog(context)
-        createFileDialog.showCreateFolderDialog { folderName ->
+        createFolderDialog.showCreateFolderDialog { folderName ->
             createFolder(folderName)
         }
     }
@@ -185,6 +182,11 @@ class GoogleDriveFileManager(
     private fun createFolder(folderName: String) {
         scope.launch {
             val createdFolderId = googleDriveApi.createFolder(folderName)
+            if (createdFolderId != null){
+                scope.launch(Dispatchers.Main) {
+                    createFolderDialog.hideCreateFolderDialog()
+                }
+            }
         }
     }
 
