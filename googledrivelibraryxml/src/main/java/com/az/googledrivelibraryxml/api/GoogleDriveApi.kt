@@ -21,6 +21,7 @@ import java.io.InputStream
 class GoogleDriveApi(private val jsonCredentialsPath : String, private val appName : String) {
 
     private var driveService: Drive
+    private val scope = CoroutineScope(Dispatchers.IO)
 
     companion object {
         private val JSON_FACTORY: JsonFactory =
@@ -50,7 +51,6 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
 
     suspend fun getDriveFiles(folderId: String): List<FileDriveItem>? {
         return try {
-            val scope = CoroutineScope(Dispatchers.IO)
             val files = scope.async {
                 driveService.files().list()
                     .setQ("'$folderId' in parents")
@@ -156,7 +156,6 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
     }
     suspend fun deleteFolder(folderId: String) : Boolean{
         return try{
-            val scope = CoroutineScope(Dispatchers.IO)
             scope.async{
                 driveService.files().delete(folderId).execute()
             }.await()
@@ -167,6 +166,8 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
         }
     }
 
+
+
     private fun fileOrDirectory(mimeType: String): ItemType {
         return if (mimeType == "application/vnd.google-apps.folder"){
             ItemType.FOLDER
@@ -175,8 +176,21 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
         }
     }
 
+    suspend fun createFolder(folderName: String): String? {
+        return try {
+            scope.async(Dispatchers.IO) {
+                val fileMetadata = com.google.api.services.drive.model.File()
+                fileMetadata.name = folderName
+                fileMetadata.mimeType = "application/vnd.google-apps.folder"
 
-
+                val file = driveService.files().create(fileMetadata).execute()
+                file.id
+            }.await()
+        } catch (e: IOException) {
+            Log.e("createFolder", "Error creating folder: ${e.message}", e)
+            null
+        }
+    }
 
 
 }

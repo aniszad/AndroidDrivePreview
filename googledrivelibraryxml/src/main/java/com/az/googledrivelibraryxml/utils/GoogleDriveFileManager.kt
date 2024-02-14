@@ -20,6 +20,7 @@ import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.AccessFileListener
 import com.az.googledrivelibraryxml.api.GoogleDriveApi
 import com.az.googledrivelibraryxml.models.FileDriveItem
 import com.az.googledrivelibraryxml.models.Permissions
+import com.google.api.services.drive.Drive.Files.Create
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -50,18 +51,11 @@ class GoogleDriveFileManager(
 
     private fun getFiles(rootFileId: String){
         adapter.showLoading()
-        try {
-            scope.launch {
-                val files = googleDriveApi.getDriveFiles(rootFileId)
-                scope.launch(Dispatchers.Main) {
-                    updateRecyclerView(files)
-                }
+        scope.launch {
+            val files = googleDriveApi.getDriveFiles(rootFileId)
+            scope.launch(Dispatchers.Main) {
+                updateRecyclerView(files)
             }
-
-        } catch (e: IOException) {
-            Log.e("error-getFiles()", e.message.toString())
-        }catch (e: Exception) {
-            Log.e("error-getFiles()", e.message.toString())
         }
     }
     private fun updateRecyclerView(files: List<FileDriveItem>?) {
@@ -168,7 +162,7 @@ class GoogleDriveFileManager(
         toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.btn_create_folder -> {
-                    // Handle menu item 1 click
+                    showFileCreateDialog()
                     true
                 }
                 R.id.btn_search -> {
@@ -179,6 +173,19 @@ class GoogleDriveFileManager(
             }
         }
         return this@GoogleDriveFileManager
+    }
+
+    private fun showFileCreateDialog() {
+        val createFileDialog =  CreateFileDialog(context)
+        createFileDialog.showCreateFolderDialog { folderName ->
+            createFolder(folderName)
+        }
+    }
+
+    private fun createFolder(folderName: String) {
+        scope.launch {
+            val createdFolderId = googleDriveApi.createFolder(folderName)
+        }
     }
 
 
