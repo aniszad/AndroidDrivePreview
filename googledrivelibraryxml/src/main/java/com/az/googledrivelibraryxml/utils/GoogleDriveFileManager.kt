@@ -4,10 +4,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.net.Uri
+import android.util.Log
 import android.view.Menu
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
@@ -117,10 +119,10 @@ class GoogleDriveFileManager(
         val intent = Intent(Intent.ACTION_VIEW)
         intent.data = Uri.parse(webContentLink)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-
         if (intent.resolveActivity(context.packageManager) != null) {
             context.startActivity(intent)
         } else {
+            Toast.makeText(context, "hehe", Toast.LENGTH_SHORT).show()
             // Handle case where no suitable activity is found to handle the intent
             // For example, show a toast or alert dialog indicating that no suitable app is installed
         }
@@ -175,13 +177,15 @@ class GoogleDriveFileManager(
 
     private fun showFileCreateDialog() {
         createFolderDialog.showCreateFolderDialog { folderName ->
-            createFolder(folderName)
+            Log.e("kk3", "Error creating folder: ${folderName}")
+            createFolder(folderName, currentIdsPath.last())
         }
     }
 
-    private fun createFolder(folderName: String) {
+    private fun createFolder(folderName: String, parentFolderId : String) {
+        Log.e("kk2", "Error creating folder: ${folderName}")
         scope.launch {
-            val createdFolderId = googleDriveApi.createFolder(folderName)
+            val createdFolderId = googleDriveApi.createFolder(folderName, parentFolderId)
             if (createdFolderId != null){
                 scope.launch(Dispatchers.Main) {
                     createFolderDialog.hideCreateFolderDialog()

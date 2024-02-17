@@ -176,21 +176,43 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
         }
     }
 
-    suspend fun createFolder(folderName: String): String? {
-        return try {
-            scope.async(Dispatchers.IO) {
-                val fileMetadata = com.google.api.services.drive.model.File()
-                fileMetadata.name = folderName
-                fileMetadata.mimeType = "application/vnd.google-apps.folder"
+    suspend fun createFolder(folderName: String, parentFolderId : String): String? {
+        try {
+            // Verify user consent and authentication
+            // ... (implement using authorized methods)
 
-                val file = driveService.files().create(fileMetadata).execute()
-                file.id
+            val fileMetadata = com.google.api.services.drive.model.File()
+            fileMetadata.name = folderName
+            fileMetadata.mimeType = "application/vnd.google-apps.folder"
+            fileMetadata.parents = listOf(parentFolderId)
+
+            val createdFile = scope.async(Dispatchers.IO) {
+                try {
+                    driveService.files().create(fileMetadata).execute()
+                } catch (e: Exception) {
+                    Log.e("createFolder", "Error creating folder:", e)
+                    throw e // Re-throw to be handled in the main thread
+                }
             }.await()
+
+            Log.e("createFolder", "Error creating folder: ${createdFile}")
+            return createdFile.id
+
         } catch (e: IOException) {
-            Log.e("createFolder", "Error creating folder: ${e.message}", e)
-            null
+            Log.e("createFolder", "Error creating folder:", e)
+            // Provide user-friendly feedback based on error details
+            return null
+        } catch (e: SecurityException) {
+            Log.e("createFolder", "Unauthorized access or insufficient permissions:", e)
+            // Notify user and request necessary permissions
+            return null
+        } catch (e: Exception) {
+            Log.e("createFolder", "Unexpected error:", e)
+            // Provide generic error message and consider retry logic
+            return null
         }
     }
+
 
 
 }
