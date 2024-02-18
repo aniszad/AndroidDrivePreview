@@ -14,6 +14,7 @@ import com.google.auth.oauth2.GoogleCredentials
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
@@ -51,13 +52,13 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
 
     suspend fun getDriveFiles(folderId: String): List<FileDriveItem>? {
         return try {
-            val files = scope.async {
+            val files = withContext(Dispatchers.IO) {
                 driveService.files().list()
                     .setQ("'$folderId' in parents")
                     .setFields("files(id, name, webViewLink, size, mimeType, webContentLink, webViewLink, modifiedTime)")
                     .execute()
             }
-            val results = files.await()
+            val results = files
             val queryResultList = mutableListOf<FileDriveItem>()
             for (file in results.files) {
                 queryResultList.add(
@@ -96,7 +97,6 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
 
     suspend fun queryDriveFiles(folderId: String, fileNameQuery: String): List<FileDriveItem>? {
         return try {
-            val scope = CoroutineScope(Dispatchers.IO)
             val files = scope.async {
                 driveService.files().list()
                     .setQ("'$folderId' in parents and name contains '$fileNameQuery'")
@@ -156,9 +156,9 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
     }
     suspend fun deleteFolder(folderId: String) : Boolean{
         return try{
-            scope.async{
+            withContext(Dispatchers.IO){
                 driveService.files().delete(folderId).execute()
-            }.await()
+            }
             true
         }catch (e : IOException){
             Log.e("hehehehhe", e.toString())
@@ -178,10 +178,7 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
 
     suspend fun createFolder(folderName: String, parentFolderId : String): String? {
         try {
-            // Verify user consent and authentication
-            // ... (implement using authorized methods)
-
-            val fileMetadata = com.google.api.services.drive.model.File()
+            val fileMetadata = File()
             fileMetadata.name = folderName
             fileMetadata.mimeType = "application/vnd.google-apps.folder"
             fileMetadata.parents = listOf(parentFolderId)
@@ -195,7 +192,6 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
                 }
             }.await()
 
-            Log.e("createFolder", "Error creating folder: ${createdFile}")
             return createdFile.id
 
         } catch (e: IOException) {

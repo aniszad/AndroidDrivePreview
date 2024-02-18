@@ -27,6 +27,7 @@ class GdFilesAdapter(
 
     private lateinit var fileOptions : FileOptions
     private lateinit var accessFileListener : AccessFileListener
+    private lateinit var accessFolderListener: AccessFolderListener
     private var isLoading = true
     inner class FileViewHolder(binding: GoogleDriveItemLayoutBinding) : RecyclerView.ViewHolder(binding.root) {
         val iconFileType = binding.imFileType
@@ -40,8 +41,9 @@ class GdFilesAdapter(
 
     interface AccessFileListener{
         fun onOpenFile(webContentLink: String)
+    }
+    interface AccessFolderListener{
         fun onOpenFolder(folderId: String, folderName : String)
-
     }
     fun setAccessFileListener(accessFileListener: AccessFileListener){
         this.accessFileListener = accessFileListener
@@ -112,7 +114,7 @@ class GdFilesAdapter(
                         if (fileOrDirectory(currentItem.mimeType) != ItemType.FOLDER){
                             accessFileListener.onOpenFile(currentItem.webViewLink)
                         }else{
-                            accessFileListener.onOpenFolder(currentItem.fileId, folderName = currentItem.fileName)
+                            accessFolderListener.onOpenFolder(currentItem.fileId, folderName = currentItem.fileName)
                         }
                     }
 
@@ -186,6 +188,8 @@ class GdFilesAdapter(
             "image/vnd.adobe.photoshop" -> R.drawable.icon_psd
             "text/plain" -> R.drawable.icon_txt
             "application/illustrator" -> R.drawable.icon_ai
+            "image/jpeg" -> R.drawable.icon_jpg // Added JPEG image type
+            "image/png" -> R.drawable.icon_png // Added PNG image type
             else -> R.drawable.icon_other // Replace with a default icon
         }
     }

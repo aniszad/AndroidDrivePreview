@@ -13,29 +13,31 @@ import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.az.googledrivelibraryxml.R
 import com.az.googledrivelibraryxml.adapters.GdFilesAdapter
-import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.AccessFileListener
+import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.*
 import com.az.googledrivelibraryxml.api.GoogleDriveApi
 import com.az.googledrivelibraryxml.models.FileDriveItem
 import com.az.googledrivelibraryxml.models.Permissions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class GoogleDriveFileManager(
     private val context: Context,
     private val jsonCredentialsPath: String,
     private val applicationName: String,
-    private val rootFileId : String
-) : GdFilesAdapter.FileOptions, GdFilesAdapter.AccessFileListener {
+    private val rootFileId : String,
+    private val lifecycleCoroutineScope: LifecycleCoroutineScope
+) : FileOptions, AccessFileListener, AccessFolderListener {
 
     private lateinit var adapter: GdFilesAdapter
     private var googleDriveApi: GoogleDriveApi =
         GoogleDriveApi(jsonCredentialsPath = jsonCredentialsPath, appName = applicationName)
-    private val scope = CoroutineScope(Dispatchers.IO)
     private lateinit var pathTextView : TextView
     // paths
     private val currentIdsPath = mutableListOf<String>()
@@ -49,44 +51,44 @@ class GoogleDriveFileManager(
         currentIdsPath.add(rootFileId)
     }
 
+    // API functions -------------------------------------------------------------------------------
     private fun getFiles(rootFileId: String){
         adapter.showLoading()
-        scope.launch {
+        lifecycleCoroutineScope.launch {
             val files = googleDriveApi.getDriveFiles(rootFileId)
-            scope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 updateRecyclerView(files)
             }
         }
     }
-    private fun updateRecyclerView(files: List<FileDriveItem>?) {
-        if (files!=null){
-            adapter.updateData(files)
-            adapter.hideLoading()
+    private fun createFolder(folderName: String, parentFolderId : String) {
+        lifecycleCoroutineScope.launch {
+            val createdFolderId = googleDriveApi.createFolder(folderName, parentFolderId)
+            if (createdFolderId != null){
+                withContext(Dispatchers.Main) {
+                    createFolderDialog.hideCreateFolderDialog()
+                }
+            }
         }
-
     }
 
-    override fun onDownload(fileId: String) {
-
-    }
+    // Adapter interfaces implementation -----------------------------------------------------------
+    override fun onDownload(fileId: String) {}
     override fun onShare(webViewLink: String) {
         shareFile(webViewLink)
     }
     override fun onDelete(fileId: String) {
-        scope.launch(Dispatchers.IO) {
+        lifecycleCoroutineScope.launch(Dispatchers.IO) {
             val isDeleted = googleDriveApi.deleteFolder(fileId)
-            getFiles(currentIdsPath.last())
+            if (isDeleted){
+                withContext(Dispatchers.Main){
+                    getFiles(currentIdsPath.last())
+                }
+            }
         }
     }
-    private fun shareFile(link: String) {
-        val sharingIntent = Intent(Intent.ACTION_SEND)
-        sharingIntent.type = "text/plain"
-        sharingIntent.putExtra(Intent.EXTRA_SUBJECT, "Share File Link")
-        sharingIntent.putExtra(Intent.EXTRA_TEXT, link)
-        context.startActivity(Intent.createChooser(sharingIntent, "Share File Link"))
-    }
     override fun onOpenFile(webContentLink: String) {
-        openFileFromDrive(webContentLink)
+        openFileInDriveApp(webContentLink)
     }
     override fun onOpenFolder(folderId: String, folderName : String) {
         currentIdsPath.add(folderId)
@@ -94,13 +96,14 @@ class GoogleDriveFileManager(
         setPathView(folderName)
         getFiles(folderId)
     }
+
+    // Navigation functions -----------------------------------------------------------------------------
     private fun goToPreviousFolder(){
         currentIdsPath.remove(currentIdsPath.last())
         currentNamesPath.remove(currentNamesPath.last())
         setPathView(currentNamesPath.last())
         getFiles(currentIdsPath.last())
     }
-
     // setting the path text ("root/folder1/folder2") if the view is provided
     private fun setPathView(folderName: String) {
         if (::pathTextView.isInitialized){
@@ -108,27 +111,23 @@ class GoogleDriveFileManager(
             for (name in currentNamesPath){
                 formattedPath += buildString {
                     append("/")
-                    append(folderName)
+                    append(name)
                 }
             }
             this.pathTextView.text = formattedPath
         }
         toolbar.title = folderName
     }
-    private fun openFileFromDrive(webContentLink: String) {
+
+    private fun openFileInDriveApp(contentViewLink: String) {
         val intent = Intent(Intent.ACTION_VIEW)
-        intent.data = Uri.parse(webContentLink)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        if (intent.resolveActivity(context.packageManager) != null) {
-            context.startActivity(intent)
-        } else {
-            Toast.makeText(context, "hehe", Toast.LENGTH_SHORT).show()
-            // Handle case where no suitable activity is found to handle the intent
-            // For example, show a toast or alert dialog indicating that no suitable app is installed
-        }
+        intent.data = Uri.parse(contentViewLink)
+        intent.setPackage("com.google.android.apps.docs") // Specify the package name of Google Drive app
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        context.startActivity(intent)
     }
 
-    // User Input ------------------------------------------------------------
+    // User Input ----------------------------------------------------------------------------------
     fun setRecyclerView(recyclerView: RecyclerView): GoogleDriveFileManager {
         adapter = GdFilesAdapter(context, emptyList(), listOf(Permissions.ADMIN))
         adapter.setFileOptionsInterface(this@GoogleDriveFileManager)
@@ -141,7 +140,7 @@ class GoogleDriveFileManager(
     }
     fun setPathTextView(textView: TextView): GoogleDriveFileManager {
         this.pathTextView = textView
-        return this@GoogleDriveFileManager
+;        return this@GoogleDriveFileManager
     }
     fun setAccessFileListener(accessFileListener: AccessFileListener): GoogleDriveFileManager {
         adapter.setAccessFileListener(accessFileListener)
@@ -175,25 +174,21 @@ class GoogleDriveFileManager(
         return this@GoogleDriveFileManager
     }
 
+    // Dialogs -------------------------------------------------------------------------------------
     private fun showFileCreateDialog() {
         createFolderDialog.showCreateFolderDialog { folderName ->
-            Log.e("kk3", "Error creating folder: ${folderName}")
             createFolder(folderName, currentIdsPath.last())
         }
     }
 
-    private fun createFolder(folderName: String, parentFolderId : String) {
-        Log.e("kk2", "Error creating folder: ${folderName}")
-        scope.launch {
-            val createdFolderId = googleDriveApi.createFolder(folderName, parentFolderId)
-            if (createdFolderId != null){
-                scope.launch(Dispatchers.Main) {
-                    createFolderDialog.hideCreateFolderDialog()
-                }
-            }
+    // UI updates ----------------------------------------------------------------------------------
+    private fun updateRecyclerView(files: List<FileDriveItem>?) {
+        if (files!=null){
+            adapter.updateData(files)
+            adapter.hideLoading()
         }
-    }
 
+    }
 
     // Style customization -------------------------------------------------------------------------
     private fun setSearchViewStyle(menu: Menu) {
@@ -208,6 +203,15 @@ class GoogleDriveFileManager(
         closeButton.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.black))
         val searchButton = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_button)
         searchButton.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.black))
+    }
+
+    // other ---------------------------------------------------------------------------------------
+    private fun shareFile(link: String) {
+        val sharingIntent = Intent(Intent.ACTION_SEND)
+        sharingIntent.type = "text/plain"
+        sharingIntent.putExtra(Intent.EXTRA_SUBJECT, "Share File Link")
+        sharingIntent.putExtra(Intent.EXTRA_TEXT, link)
+        context.startActivity(Intent.createChooser(sharingIntent, "Share File Link"))
     }
 
 }
