@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
         gdm.setRecyclerView(binding.recyclerView)
             .setActionBar(binding.toolbar)
             .setPathTextView(binding.tvPath)
+            .setRootFileName("Files Bank")
 
 
     }

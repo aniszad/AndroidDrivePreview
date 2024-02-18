@@ -1,9 +1,11 @@
 package com.az.googledrivelibraryxml.utils
 
+import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.net.Uri
+import android.os.Environment
 import android.util.Log
 import android.view.Menu
 import android.widget.EditText
@@ -73,7 +75,9 @@ class GoogleDriveFileManager(
     }
 
     // Adapter interfaces implementation -----------------------------------------------------------
-    override fun onDownload(fileId: String) {}
+    override fun onDownload(downloadUrl: String, fileName : String) {
+        downloadFile(downloadUrl, fileName)
+    }
     override fun onShare(webViewLink: String) {
         shareFile(webViewLink)
     }
@@ -132,6 +136,7 @@ class GoogleDriveFileManager(
         adapter = GdFilesAdapter(context, emptyList(), listOf(Permissions.ADMIN))
         adapter.setFileOptionsInterface(this@GoogleDriveFileManager)
         adapter.setAccessFileListener(this@GoogleDriveFileManager)
+        adapter.setAccessFolderListener(this@GoogleDriveFileManager)
         recyclerView.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         recyclerView.adapter = adapter
@@ -140,6 +145,7 @@ class GoogleDriveFileManager(
     }
     fun setPathTextView(textView: TextView): GoogleDriveFileManager {
         this.pathTextView = textView
+        this.pathTextView.text = currentNamesPath.first()
 ;        return this@GoogleDriveFileManager
     }
     fun setAccessFileListener(accessFileListener: AccessFileListener): GoogleDriveFileManager {
@@ -154,7 +160,7 @@ class GoogleDriveFileManager(
         toolbar.setNavigationOnClickListener {
             goToPreviousFolder()
         }
-        toolbar.title = "Title"
+        toolbar.title = currentNamesPath.first()
         setSearchViewStyle(toolbar.menu)
 
         // Set menu item click listener
@@ -212,6 +218,24 @@ class GoogleDriveFileManager(
         sharingIntent.putExtra(Intent.EXTRA_SUBJECT, "Share File Link")
         sharingIntent.putExtra(Intent.EXTRA_TEXT, link)
         context.startActivity(Intent.createChooser(sharingIntent, "Share File Link"))
+    }
+    private fun downloadFile(fileUrl: String, fileName: String) {
+        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val downloadUri = Uri.parse(fileUrl)
+
+        val request = DownloadManager.Request(downloadUri)
+            .setTitle(fileName)
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+            .setAllowedOverMetered(true)
+            .setAllowedOverRoaming(true)
+
+        downloadManager.enqueue(request)
+    }
+
+    fun setRootFileName(rootFileName: String) {
+        this.currentNamesPath[0] = rootFileName
+        this.toolbar.title = rootFileName
     }
 
 }

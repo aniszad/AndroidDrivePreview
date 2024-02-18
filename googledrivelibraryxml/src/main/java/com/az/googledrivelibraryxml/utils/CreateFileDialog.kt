@@ -33,7 +33,6 @@ class CreateFileDialog(private val context: Context) {
                 hideCreateFolderDialog()
             }
         }
-        binding.piBtnCreateFolder.visibility = View.GONE
         binding.btnCreateFolder.text  = buildString{
             append("Create folder")
         }
@@ -41,7 +40,7 @@ class CreateFileDialog(private val context: Context) {
     }
 
     private fun showLoadingButton() {
-        binding.piBtnCreateFolder.visibility = View.VISIBLE
+        binding.piLoginLoad.visibility = View.VISIBLE
         binding.btnCreateFolder.text  = ""
     }
 

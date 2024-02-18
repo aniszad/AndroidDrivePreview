@@ -39,18 +39,21 @@ class GdFilesAdapter(
     }
     inner class LoadingBarViewHolder(binding : LoadingBarLayoutBinding) : RecyclerView.ViewHolder(binding.root)
 
-    interface AccessFileListener{
-        fun onOpenFile(webContentLink: String)
-    }
     interface AccessFolderListener{
         fun onOpenFolder(folderId: String, folderName : String)
+    }
+    fun setAccessFolderListener(accessFolderListener: AccessFolderListener) {
+        this.accessFolderListener = accessFolderListener
+    }
+    interface AccessFileListener{
+        fun onOpenFile(webContentLink: String)
     }
     fun setAccessFileListener(accessFileListener: AccessFileListener){
         this.accessFileListener = accessFileListener
     }
     interface FileOptions{
 
-        fun onDownload(fileId: String)
+        fun onDownload(downloadUrl: String, fileName:String)
         fun onShare(webViewLink: String)
         fun onDelete(fileId:String)
     }
@@ -99,25 +102,36 @@ class GdFilesAdapter(
             is FileViewHolder ->{
                 val currentItem = filesList[position]
                 holder.apply {
-
-                    tvFileName.text = currentItem.fileName
-                    tvFileSize.text = formatSize(currentItem.size)
-                    tvCreationDate.text = formatDate(currentItem.lastModified)
-                    iconFileType.setImageDrawable(ContextCompat.getDrawable(
-                        context,
-                        getIconFromMimeType(currentItem.mimeType)
-                    ))
-                    btnMore.setOnClickListener {
-                        showOptionsMenu(it,currentItem)
-                    }
-                    root.setOnClickListener {
-                        if (fileOrDirectory(currentItem.mimeType) != ItemType.FOLDER){
-                            accessFileListener.onOpenFile(currentItem.webViewLink)
-                        }else{
+                    if (fileOrDirectory(currentItem.mimeType) == ItemType.FOLDER){
+                        tvFileName.text = currentItem.fileName
+                        btnMore.visibility = View.GONE
+                        tvFileSize.text = ""
+                        tvCreationDate.text = formatDate(currentItem.lastModified)
+                        iconFileType.setImageDrawable(ContextCompat.getDrawable(
+                            context,
+                            getIconFromMimeType(currentItem.mimeType)
+                        ))
+                        btnMore.setOnClickListener {
+                            showOptionsMenu(it,currentItem)
+                        }
+                        root.setOnClickListener {
                             accessFolderListener.onOpenFolder(currentItem.fileId, folderName = currentItem.fileName)
                         }
+                    }else{
+                        tvFileName.text = currentItem.fileName
+                        tvFileSize.text = formatSize(currentItem.size)
+                        tvCreationDate.text = formatDate(currentItem.lastModified)
+                        iconFileType.setImageDrawable(ContextCompat.getDrawable(
+                            context,
+                            getIconFromMimeType(currentItem.mimeType)
+                        ))
+                        btnMore.setOnClickListener {
+                            showOptionsMenu(it,currentItem)
+                        }
+                        root.setOnClickListener {
+                            accessFileListener.onOpenFile(currentItem.webViewLink)
+                        }
                     }
-
                 }
             }
         }
@@ -138,7 +152,7 @@ class GdFilesAdapter(
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.btn_download -> {
-                    fileOptions.onDownload(currentItem.downloadUrl)
+                    fileOptions.onDownload(currentItem.downloadUrl, currentItem.fileName)
                     true
                 }
                 R.id.btn_share -> {
@@ -218,6 +232,9 @@ class GdFilesAdapter(
         isLoading = false
         notifyDataSetChanged()
     }
+
+
+
     companion object{
         const val DATA_VIEW_TYPE = 1
         const val NO_DATA_VIEW_TYPE = 0
