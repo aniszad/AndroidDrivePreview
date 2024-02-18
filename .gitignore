@@ -14,5 +14,7 @@
 .cxx
 local.properties
 /googledrivelibraryxml/src/main/res/raw/credentials.json
-credentials.json
 /googledrivelibraryxml/src/main/res/raw/
+credentials.json
+./googledrivelibraryxml/src/main/res/raw/credentials.json
+./googledrivelibraryxml/src/main/res/raw/
