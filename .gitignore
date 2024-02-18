@@ -13,4 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
-MainActivity.kt
+/googledrivelibraryxml/src/main/res/raw/credentials.json
+credentials.json
+/googledrivelibraryxml/src/main/res/raw/
