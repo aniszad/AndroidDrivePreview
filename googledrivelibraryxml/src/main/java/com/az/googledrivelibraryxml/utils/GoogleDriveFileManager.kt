@@ -6,8 +6,8 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
 import android.view.Menu
-import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
@@ -23,17 +23,17 @@ import com.az.googledrivelibraryxml.adapters.GdFilesAdapter
 import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.*
 import com.az.googledrivelibraryxml.api.GoogleDriveApi
 import com.az.googledrivelibraryxml.models.FileDriveItem
-import com.az.googledrivelibraryxml.models.Permissions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class GoogleDriveFileManager(
     private val context: Context,
-    private val jsonCredentialsPath: String,
-    private val applicationName: String,
     private val rootFileId : String,
-    private val lifecycleCoroutineScope: LifecycleCoroutineScope
+    private val lifecycleCoroutineScope: LifecycleCoroutineScope,
+    private val permissions : Permissions,
+    jsonCredentialsPath: String,
+    applicationName: String,
 ) : FileOptions, AccessFileListener, AccessFolderListener {
 
     private lateinit var adapter: GdFilesAdapter
@@ -45,8 +45,6 @@ class GoogleDriveFileManager(
     private var currentNamesPath = mutableListOf("root")
     private lateinit var toolbar: Toolbar
     private val createFolderDialog =  CreateFileDialog(context)
-
-
 
     init {
         currentIdsPath.add(rootFileId)
@@ -62,7 +60,6 @@ class GoogleDriveFileManager(
             }
         }
     }
-
     private fun queryFiles(query: String) {
         adapter.showLoading()
         lifecycleCoroutineScope.launch {
@@ -106,23 +103,22 @@ class GoogleDriveFileManager(
     override fun onOpenFolder(folderId: String, folderName : String) {
         navigateForward(folderId, folderName)
     }
-
     // Navigation functions ------------------------------------------------------------------------
     fun navigateBack(){
         currentIdsPath.remove(currentIdsPath.last())
         currentNamesPath.remove(currentNamesPath.last())
-        setPathView(currentNamesPath.last())
+        setPathView(currentNamesPath.last(), currentIdsPath.last())
         getFiles(currentIdsPath.last())
     }
     private fun navigateForward(folderId: String, folderName : String){
         currentIdsPath.add(folderId)
         currentNamesPath.add(folderName)
-        setPathView(folderName)
+        setPathView(folderName, folderId)
         getFiles(folderId)
     }
 
     // setting the path text ("root/folder1/folder2") if the view is provided
-    private fun setPathView(folderName: String) {
+    private fun setPathView(folderName: String, folderId:String) {
         if (::pathTextView.isInitialized){
             var formattedPath = ""
             for (name in currentNamesPath){
@@ -132,6 +128,11 @@ class GoogleDriveFileManager(
                 }
             }
             this.pathTextView.text = formattedPath
+        }
+        if (folderId == this.rootFileId){
+            toolbar.navigationIcon = null
+        }else{
+            toolbar.navigationIcon = ContextCompat.getDrawable(context, R.drawable.icon_arrow_left)
         }
         toolbar.title = folderName
     }
@@ -145,7 +146,7 @@ class GoogleDriveFileManager(
 
     // User Input ----------------------------------------------------------------------------------
     fun setRecyclerView(recyclerView: RecyclerView): GoogleDriveFileManager {
-        adapter = GdFilesAdapter(context, emptyList(), listOf(Permissions.ADMIN))
+        adapter = GdFilesAdapter(context, emptyList(), listOf(permissions))
         adapter.setFileOptionsInterface(this@GoogleDriveFileManager)
         adapter.setAccessFileListener(this@GoogleDriveFileManager)
         adapter.setAccessFolderListener(this@GoogleDriveFileManager)
@@ -167,8 +168,17 @@ class GoogleDriveFileManager(
     fun setActionBar(toolbar: Toolbar): GoogleDriveFileManager {
         // Inflate the menu resource
         this.toolbar = toolbar
-        toolbar.inflateMenu(R.menu.toolbar_menu)
-        toolbar.navigationIcon = ContextCompat.getDrawable(context, R.drawable.icon_arrow_left)
+        when (this.permissions) {
+            Permissions.ADMIN -> {
+                toolbar.inflateMenu(R.menu.admin_toolbar_menu)
+            }
+            Permissions.USER->{
+                toolbar.inflateMenu(R.menu.strict_toolbar_menu)
+            }
+            Permissions.STRICT->{
+                toolbar.inflateMenu(R.menu.strict_toolbar_menu)
+            }
+        }
         toolbar.setNavigationOnClickListener {
             navigateBack()
         }
@@ -192,6 +202,7 @@ class GoogleDriveFileManager(
         }
         return this@GoogleDriveFileManager
     }
+
     // Dialogs -------------------------------------------------------------------------------------
     private fun showFileCreateDialog() {
         createFolderDialog.showCreateFolderDialog { folderName ->
@@ -223,23 +234,6 @@ class GoogleDriveFileManager(
         searchButton.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.black))
     }
 
-    private fun setSearchViewFunctionality(menu: Menu?) {
-        val searchItem = menu?.findItem(R.id.btn_search)
-        val searchView = searchItem?.actionView as SearchView
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return true
-            }
-            override fun onQueryTextChange(query: String?): Boolean {
-                if (query != null){
-                    queryFiles(query)
-                }
-                return true
-            }
-        })
-    }
-
-
     // other ---------------------------------------------------------------------------------------
     private fun shareFile(link: String) {
         val sharingIntent = Intent(Intent.ACTION_SEND)
@@ -265,5 +259,21 @@ class GoogleDriveFileManager(
         this.currentNamesPath[0] = rootFileName
         this.toolbar.title = rootFileName
     }
+    private fun setSearchViewFunctionality(menu: Menu?) {
+        val searchItem = menu?.findItem(R.id.btn_search)
+        val searchView = searchItem?.actionView as SearchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return true
+            }
+            override fun onQueryTextChange(query: String?): Boolean {
+                if (query != null){
+                    queryFiles(query)
+                }
+                return true
+            }
+        })
+    }
+
 
 }

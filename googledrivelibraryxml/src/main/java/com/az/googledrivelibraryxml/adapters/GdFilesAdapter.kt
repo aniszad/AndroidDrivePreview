@@ -15,7 +15,7 @@ import com.az.googledrivelibraryxml.databinding.LoadingBarLayoutBinding
 import com.az.googledrivelibraryxml.databinding.NoDataLayoutItemBinding
 import com.az.googledrivelibraryxml.models.FileDriveItem
 import com.az.googledrivelibraryxml.models.ItemType
-import com.az.googledrivelibraryxml.models.Permissions
+import com.az.googledrivelibraryxml.utils.Permissions
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.math.pow
@@ -162,8 +162,10 @@ class GdFilesAdapter(
     private fun showOptionsMenu(anchorView: View, currentItem: FileDriveItem) {
         val popupMenu = PopupMenu(context, anchorView)
         popupMenu.menuInflater.inflate(R.menu.file_options_menu, popupMenu.menu)
-        popupMenu.menu.findItem(R.id.btn_download).isVisible = permissions.contains(Permissions.USER) || permissions.contains(Permissions.ADMIN)
-        popupMenu.menu.findItem(R.id.btn_share).isVisible = permissions.contains(Permissions.USER) || permissions.contains(Permissions.ADMIN)
+        popupMenu.menu.findItem(R.id.btn_download).isVisible = permissions.contains(Permissions.USER) || permissions.contains(
+            Permissions.ADMIN)
+        popupMenu.menu.findItem(R.id.btn_share).isVisible = permissions.contains(Permissions.USER) || permissions.contains(
+            Permissions.ADMIN)
         popupMenu.menu.findItem(R.id.btn_delete).isVisible = permissions.contains(Permissions.ADMIN)
 
         popupMenu.setOnMenuItemClickListener { menuItem ->

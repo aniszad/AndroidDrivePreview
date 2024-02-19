@@ -1,4 +1,4 @@
-package com.az.googledrivelibraryxml.models
+package com.az.googledrivelibraryxml.utils
 
 enum class Permissions {
     STRICT, // viewing only
