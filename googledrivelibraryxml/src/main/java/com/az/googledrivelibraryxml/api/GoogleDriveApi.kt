@@ -100,7 +100,7 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
             val files = scope.async {
                 driveService.files().list()
                     .setQ("'$folderId' in parents and name contains '$fileNameQuery'")
-                    .setFields("files(id, name, webViewLink, size, mimeType, webContentLink, exportLinks)")
+                    .setFields("files(id, name, webViewLink, size, mimeType, webContentLink, webViewLink, modifiedTime)")
                     .execute()
             }
             val results = files.await()

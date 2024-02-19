@@ -1,7 +1,6 @@
 package com.az.googledrivelibraryxml.adapters
 
 import android.content.Context
-import android.graphics.drawable.Drawable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -10,8 +9,10 @@ import android.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.az.googledrivelibraryxml.R
+import com.az.googledrivelibraryxml.databinding.EmptyLayoutItemBinding
 import com.az.googledrivelibraryxml.databinding.GoogleDriveItemLayoutBinding
 import com.az.googledrivelibraryxml.databinding.LoadingBarLayoutBinding
+import com.az.googledrivelibraryxml.databinding.NoDataLayoutItemBinding
 import com.az.googledrivelibraryxml.models.FileDriveItem
 import com.az.googledrivelibraryxml.models.ItemType
 import com.az.googledrivelibraryxml.models.Permissions
@@ -38,6 +39,8 @@ class GdFilesAdapter(
         val root = binding.root
     }
     inner class LoadingBarViewHolder(binding : LoadingBarLayoutBinding) : RecyclerView.ViewHolder(binding.root)
+    inner class NoDataViewHolder(binding : NoDataLayoutItemBinding) : RecyclerView.ViewHolder(binding.root)
+    inner class EmptyElementViewHolder(binding : EmptyLayoutItemBinding) : RecyclerView.ViewHolder(binding.root)
 
     interface AccessFolderListener{
         fun onOpenFolder(folderId: String, folderName : String)
@@ -61,15 +64,31 @@ class GdFilesAdapter(
         this.fileOptions = fileOptions
     }
     override fun getItemViewType(position: Int): Int {
-        return if(isLoading){
-            NO_DATA_VIEW_TYPE
-        }else{
-            DATA_VIEW_TYPE
+        Log.e("list content", filesList.toString())
+        return when{
+            isLoading -> LOADING_VIEW_TYPE
+            filesList.isEmpty() -> NO_DATA_VIEW_TYPE
+            position == filesList.size -> EMPTY_ITEM_VIEW_TYPE
+            else -> DATA_VIEW_TYPE
         }
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType){
-            NO_DATA_VIEW_TYPE->{
+            DATA_VIEW_TYPE -> {
+                FileViewHolder(GoogleDriveItemLayoutBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+            }
+            EMPTY_ITEM_VIEW_TYPE -> {
+                EmptyElementViewHolder(EmptyLayoutItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+            }
+            NO_DATA_VIEW_TYPE -> {
+                NoDataViewHolder(NoDataLayoutItemBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+                )
+            }
+            LOADING_VIEW_TYPE->{
                 LoadingBarViewHolder(LoadingBarLayoutBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
@@ -77,9 +96,7 @@ class GdFilesAdapter(
                 )
                 )
             }
-            DATA_VIEW_TYPE -> {
-                FileViewHolder(GoogleDriveItemLayoutBinding.inflate(LayoutInflater.from(parent.context), parent, false))
-            }
+
             else -> {
                 LoadingBarViewHolder(LoadingBarLayoutBinding.inflate(
                     LayoutInflater.from(parent.context),
@@ -94,7 +111,7 @@ class GdFilesAdapter(
         return if (this.filesList.isEmpty()){
             1
         }else{
-            filesList.size
+            filesList.size+1
         }
     }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
@@ -208,10 +225,8 @@ class GdFilesAdapter(
         }
     }
     fun formatDate(inputDateString: String): String{
-
         val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
         val outputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-
         val date = inputFormat.parse(inputDateString)
         return date?.let { outputFormat.format(it) } ?: ""
     }
@@ -236,7 +251,9 @@ class GdFilesAdapter(
 
 
     companion object{
+        const val EMPTY_ITEM_VIEW_TYPE = 3
+        const val NO_DATA_VIEW_TYPE = 2
         const val DATA_VIEW_TYPE = 1
-        const val NO_DATA_VIEW_TYPE = 0
+        const val LOADING_VIEW_TYPE = 0
     }
 }
