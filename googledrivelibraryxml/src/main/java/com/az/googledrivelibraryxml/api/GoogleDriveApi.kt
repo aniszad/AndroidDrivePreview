@@ -64,34 +64,33 @@ class GoogleDriveApi(jsonCredentialsPath : String, private val appName : String)
             val files = withContext(Dispatchers.IO) {
                 driveService.files().list()
                     .setQ("'$folderId' in parents")
-                    .setFields("files(id, name, webViewLink, size, mimeType, webContentLink, webViewLink, createdTime, exportLinks)")
+                    .setFields("files(id, name, size, mimeType, webContentLink,webViewLink, createdTime, exportLinks)")
                     .execute()
             }
 
-            val results = files
-            Log.e("jiit", results.toString())
             val queryResultList = mutableListOf<FileDriveItem>()
-            for (file in results.files) {
+            Log.e("rar", files.files.toString())
+            for (file in files.files) {
                 queryResultList.add(
                     FileDriveItem(
                         fileId = file.id,
                         fileName = file.name,
                         mimeType = (file.mimeType),
-                        size = if (fileOrDirectory(file.mimeType) == ItemType.FILE){
+                        size = if (fileOrDirectory(file.mimeType) == ItemType.FILE) {
                             file.getSize()
-                        }else{
+                        } else {
                             0L
                         },
                         lastModified = file.createdTime.toString(),
-                        downloadUrl = if (fileOrDirectory(file.mimeType) == ItemType.FILE){
+                        downloadUrl = if (fileOrDirectory(file.mimeType) == ItemType.FILE) {
 
                             file.webContentLink
-                        }else{
+                        } else {
                             ""
                         },
-                        webViewLink = if (fileOrDirectory(file.mimeType) == ItemType.FILE){
+                        webViewLink = if (fileOrDirectory(file.mimeType) == ItemType.FILE) {
                             file.webViewLink
-                        }else{
+                        } else {
                             ""
                         }
                     )
@@ -108,12 +107,11 @@ class GoogleDriveApi(jsonCredentialsPath : String, private val appName : String)
             val files = withContext(Dispatchers.IO) {
                 driveService.files().list()
                     .setQ("'$folderId' in parents and name contains '$fileNameQuery'")
-                    .setFields("files(id, name, webViewLink, size, mimeType, webContentLink, webViewLink, createdTime)")
+                    .setFields("files(id, name, webViewLink, size, mimeType, webContentLink, createdTime)")
                     .execute()
             }
-            val results = files
             val queryResultList = mutableListOf<FileDriveItem>()
-            for (file in results.files) {
+            for (file in files.files) {
                 queryResultList.add(
                     FileDriveItem(
                         fileId = file.id,
@@ -126,9 +124,9 @@ class GoogleDriveApi(jsonCredentialsPath : String, private val appName : String)
                         } else {
                             ""
                         },
-                        webViewLink = if (fileOrDirectory(file.mimeType) == ItemType.FILE){
+                        webViewLink = if (fileOrDirectory(file.mimeType) == ItemType.FILE) {
                             file.webViewLink
-                        }else{
+                        } else {
                             ""
                         }
                     )
@@ -147,7 +145,7 @@ class GoogleDriveApi(jsonCredentialsPath : String, private val appName : String)
             }
             true
         }catch (e : IOException){
-            Log.e("hehehehhe", e.toString())
+            Log.e("ERROR WHILE DELETING FILE", e.message.toString())
             false
         }
     }

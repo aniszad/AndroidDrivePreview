@@ -43,7 +43,7 @@ class GoogleDriveFileManager(
     private lateinit var pathTextView : TextView
     // paths
     private val currentIdsPath = mutableListOf<String>()
-    private var currentNamesPath = mutableListOf("root")
+    private var currentNamesPath = mutableListOf("")
     private lateinit var toolbar: Toolbar
     private val createFolderDialog =  CreateFileDialog(context)
 
@@ -245,6 +245,7 @@ class GoogleDriveFileManager(
         sharingIntent.putExtra(Intent.EXTRA_TEXT, link)
         context.startActivity(Intent.createChooser(sharingIntent, "Share File Link"))
     }
+
     /*private fun downloadPublicFile(fileUrl: String, fileName: String) {
         val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadUri = Uri.parse(fileUrl)
@@ -263,8 +264,12 @@ class GoogleDriveFileManager(
 
     fun setRootFileName(rootFileName: String) {
         this.currentNamesPath[0] = rootFileName
+        this.pathTextView.text = buildString {
+            append("$rootFileName/")
+        }
         this.toolbar.title = rootFileName
     }
+
     private fun setSearchViewFunctionality(menu: Menu?) {
         val searchItem = menu?.findItem(R.id.btn_search)
         val searchView = searchItem?.actionView as SearchView
@@ -280,9 +285,4 @@ class GoogleDriveFileManager(
             }
         })
     }
-
-
-
-
-
 }

@@ -237,9 +237,12 @@ class GdFilesAdapter(
             mimeType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" -> R.drawable.icon_xls
             mimeType == "application/json" -> R.drawable.icon_json
             mimeType == "text/csv" -> R.drawable.icon_csv
+            mimeType == "application/x-rar-compressed" -> R.drawable.icon_rar // Adding RAR icon
+            mimeType == "application/x-zip-compressed" -> R.drawable.icon_zip // Adding RAR icon
             else -> R.drawable.icon_other // Replace with a default icon
         }
     }
+
 
     private fun formatDate(inputDateString: String): String{
         val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
