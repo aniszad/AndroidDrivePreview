@@ -8,7 +8,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.az.googledrivelibraryxml.adapters.GdFilesAdapter
 import com.az.googledrivelibraryxml.api.GoogleDriveApi
 import com.az.googledrivelibraryxml.models.FileDriveItem
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertTrue
 import org.junit.Before

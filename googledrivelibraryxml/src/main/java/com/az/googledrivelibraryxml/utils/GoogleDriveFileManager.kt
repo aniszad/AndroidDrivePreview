@@ -1,54 +1,31 @@
 package com.az.googledrivelibraryxml.utils
 
 import android.app.DownloadManager
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
-import android.content.Context.NOTIFICATION_SERVICE
 import android.content.Intent
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
-import android.util.Log
 import android.view.Menu
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
-import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.az.googledrivelibraryxml.R
 import com.az.googledrivelibraryxml.adapters.GdFilesAdapter
-import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.*
+import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.AccessFileListener
+import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.AccessFolderListener
+import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.FileOptions
 import com.az.googledrivelibraryxml.api.GoogleDriveApi
 import com.az.googledrivelibraryxml.models.FileDriveItem
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
-import com.google.api.client.json.jackson2.JacksonFactory
-import com.google.api.services.drive.Drive
-import com.google.auth.http.HttpCredentialsAdapter
-import com.google.auth.oauth2.GoogleCredentials
-import com.google.auth.oauth2.ServiceAccountCredentials
-import com.google.common.reflect.Reflection.getPackageName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileNotFoundException
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 
 
 class GoogleDriveFileManager(
@@ -56,8 +33,8 @@ class GoogleDriveFileManager(
     private val rootFileId : String,
     private val lifecycleCoroutineScope: LifecycleCoroutineScope,
     private val permissions : Permissions,
-    private val jsonCredentialsPath: String,
-    private val applicationName: String,
+    jsonCredentialsPath: String,
+    applicationName: String,
 ) : FileOptions, AccessFileListener, AccessFolderListener {
 
     private lateinit var adapter: GdFilesAdapter
@@ -185,7 +162,7 @@ class GoogleDriveFileManager(
     fun setPathTextView(textView: TextView): GoogleDriveFileManager {
         this.pathTextView = textView
         this.pathTextView.text = currentNamesPath.first()
-;        return this@GoogleDriveFileManager
+        return this@GoogleDriveFileManager
     }
     fun setAccessFileListener(accessFileListener: AccessFileListener): GoogleDriveFileManager {
         adapter.setAccessFileListener(accessFileListener)
@@ -268,7 +245,7 @@ class GoogleDriveFileManager(
         sharingIntent.putExtra(Intent.EXTRA_TEXT, link)
         context.startActivity(Intent.createChooser(sharingIntent, "Share File Link"))
     }
-    private fun downloadFile(fileUrl: String, fileName: String) {
+    /*private fun downloadPublicFile(fileUrl: String, fileName: String) {
         val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadUri = Uri.parse(fileUrl)
 
@@ -281,6 +258,8 @@ class GoogleDriveFileManager(
 
         downloadManager.enqueue(request)
     }
+
+     */
 
     fun setRootFileName(rootFileName: String) {
         this.currentNamesPath[0] = rootFileName

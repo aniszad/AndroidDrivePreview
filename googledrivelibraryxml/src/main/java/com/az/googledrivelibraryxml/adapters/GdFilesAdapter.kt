@@ -1,5 +1,6 @@
 package com.az.googledrivelibraryxml.adapters
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
@@ -154,6 +155,7 @@ class GdFilesAdapter(
         }
 
     }
+    @SuppressLint("NotifyDataSetChanged")
     fun updateData(files: List<FileDriveItem>) {
         this.filesList = files
         notifyDataSetChanged()
@@ -239,7 +241,7 @@ class GdFilesAdapter(
         }
     }
 
-    fun formatDate(inputDateString: String): String{
+    private fun formatDate(inputDateString: String): String{
         val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
         val outputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         val date = inputFormat.parse(inputDateString)
@@ -253,6 +255,7 @@ class GdFilesAdapter(
             ItemType.FILE
         }
     }
+    @SuppressLint("NotifyDataSetChanged")
     fun showLoading() {
         this.filesList = emptyList()
         isLoading = true
@@ -260,10 +263,7 @@ class GdFilesAdapter(
     }
     fun hideLoading() {
         isLoading = false
-        notifyDataSetChanged()
     }
-
-
 
     companion object{
         const val EMPTY_ITEM_VIEW_TYPE = 3

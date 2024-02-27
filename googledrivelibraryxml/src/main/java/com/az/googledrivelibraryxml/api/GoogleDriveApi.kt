@@ -2,16 +2,12 @@ package com.az.googledrivelibraryxml.api
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.graphics.Color
-import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.core.content.FileProvider
 import com.az.googledrivelibraryxml.models.FileDriveItem
 import com.az.googledrivelibraryxml.models.ItemType
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
@@ -22,8 +18,6 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.google.api.services.drive.model.File
-import com.google.api.services.drive.model.FileList
-import com.google.api.services.drive.model.Permission
 import com.google.auth.http.HttpCredentialsAdapter
 import com.google.auth.oauth2.GoogleCredentials
 import kotlinx.coroutines.Dispatchers
@@ -34,10 +28,10 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
-class GoogleDriveApi(private val jsonCredentialsPath : String, private val appName : String) {
+class GoogleDriveApi(jsonCredentialsPath : String, private val appName : String) {
 
     private var driveService: Drive
-    private lateinit var googleCredentials: GoogleCredentials
+    private var googleCredentials: GoogleCredentials
 
     companion object {
         private val JSON_FACTORY: JsonFactory =
@@ -47,16 +41,15 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
 
     init {
         // Load client secrets from your credentials file
-        val `in`: InputStream =
+        val inputStream: InputStream =
             this@GoogleDriveApi::class.java.classLoader!!.getResourceAsStream(
                 jsonCredentialsPath
             )
                 ?: throw FileNotFoundException("Resource not found: $jsonCredentialsPath")
-        try {
+        inputStream.use { `in` ->
             googleCredentials = GoogleCredentials.fromStream(`in`).createScoped(
                 SCOPES
             )
-
             driveService = Drive.Builder(
                 NetHttpTransport(),
                 JSON_FACTORY,
@@ -64,8 +57,6 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
             )
                 .setApplicationName(appName)
                 .build()
-        } finally {
-            `in`.close()
         }
     }
     suspend fun getDriveFiles(folderId: String): List<FileDriveItem>? {
@@ -149,28 +140,6 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
             null
         }
     }
-    suspend fun createFolderInPath(folderName: String, parentFolderIds: List<String>): String? {
-        return try {
-            // Create the metadata for the new folder
-            val folderMetadata = File()
-                .setName(folderName)
-                .setMimeType("application/vnd.google-apps.folder")
-                .setParents(parentFolderIds)
-
-            // Create the folder using the Drive API
-
-            val folder = withContext(Dispatchers.IO){
-                driveService.files()
-                    .create(folderMetadata).execute()
-            }
-
-            // Return the ID of the newly created folder
-            folder?.id
-        } catch (e: IOException) {
-            Log.e("ERROR WHILE CREATING FOLDER ", e.message.toString())
-            null
-        }
-    }
     suspend fun deleteFolder(folderId: String) : Boolean{
         return try{
             withContext(Dispatchers.IO){
@@ -251,8 +220,8 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
 
         // Notification for download start
         val startNotification = NotificationCompat.Builder(context, channelId)
-            .setContentTitle("Download started")
-            .setContentText("Downloading $fileName")
+            .setContentTitle("Downloading")
+            .setContentText(fileName)
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setOngoing(true)
@@ -276,12 +245,11 @@ class GoogleDriveApi(private val jsonCredentialsPath : String, private val appNa
             }
             val completionNotification = NotificationCompat.Builder(context, channelId)
                 .setContentTitle("Download completed")
-                .setContentText("Download completed for $fileName")
+                .setContentText(fileName)
                 .setSmallIcon(android.R.drawable.stat_sys_download_done)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setAutoCancel(true) // Automatically dismiss the notification when clicked
+                .setAutoCancel(true)
                 .build()
-
             notificationManager.notify(notificationId, completionNotification)
 
         } catch (e: IOException) {
