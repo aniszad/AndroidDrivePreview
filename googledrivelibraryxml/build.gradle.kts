@@ -55,7 +55,17 @@ android {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.12.0")
+
+    testImplementation("junit:junit:4.13.2")
+
+    // required if you want to use Mockito for unit tests
+    testImplementation ("org.mockito:mockito-core:3.12.4")
+    // required if you want to use Mockito for Android tests
+    androidTestImplementation ("org.mockito:mockito-android:2.24.5")
+
+    implementation("com.google.api-client:google-api-client-jackson2:1.31.0")
+
+    implementation ("com.squareup.okhttp3:okhttp:4.9.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")

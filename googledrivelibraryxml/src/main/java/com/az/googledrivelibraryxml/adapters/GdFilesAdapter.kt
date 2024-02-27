@@ -56,7 +56,7 @@ class GdFilesAdapter(
     }
     interface FileOptions{
 
-        fun onDownload(downloadUrl: String, fileName:String)
+        fun onDownload(fileId: String, fileName:String)
         fun onShare(webViewLink: String)
         fun onDelete(fileId:String)
     }
@@ -165,13 +165,13 @@ class GdFilesAdapter(
         popupMenu.menu.findItem(R.id.btn_download).isVisible = permissions.contains(Permissions.USER) || permissions.contains(
             Permissions.ADMIN)
         popupMenu.menu.findItem(R.id.btn_share).isVisible = permissions.contains(Permissions.USER) || permissions.contains(
-            Permissions.ADMIN)
+            Permissions.ADMIN) || permissions.contains(Permissions.STRICT)
         popupMenu.menu.findItem(R.id.btn_delete).isVisible = permissions.contains(Permissions.ADMIN)
 
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.btn_download -> {
-                    fileOptions.onDownload(currentItem.downloadUrl, currentItem.fileName)
+                    fileOptions.onDownload(currentItem.fileId, currentItem.fileName)
                     true
                 }
                 R.id.btn_share -> {
@@ -206,26 +206,39 @@ class GdFilesAdapter(
         }
     }
     private fun getIconFromMimeType(mimeType: String): Int {
-        if (fileOrDirectory(mimeType) == ItemType.FOLDER){
+        if (fileOrDirectory(mimeType) == ItemType.FOLDER) {
             return R.drawable.icon_folder
         }
-        return when (mimeType) {
-            "application/pdf" -> R.drawable.icon_pdf
-            "image/gif" -> R.drawable.icon_gif
-            "audio/mpeg" -> R.drawable.icon_mp3
-            "video/x-msvideo" -> R.drawable.icon_avi
-            "video/x-matroska" -> R.drawable.icon_mkv
-            "application/vnd.ms-powerpoint" -> R.drawable.icon_ppt
-            "application/vnd.ms-excel" -> R.drawable.icon_xls
-            "application/zip" -> R.drawable.icon_zip
-            "image/vnd.adobe.photoshop" -> R.drawable.icon_psd
-            "text/plain" -> R.drawable.icon_txt
-            "application/illustrator" -> R.drawable.icon_ai
-            "image/jpeg" -> R.drawable.icon_jpg // Added JPEG image type
-            "image/png" -> R.drawable.icon_png // Added PNG image type
+        return when {
+            mimeType.startsWith("image/") -> {
+                when (mimeType) {
+                    "image/gif" -> R.drawable.icon_gif
+                    "image/jpeg" -> R.drawable.icon_jpg
+                    "image/png" -> R.drawable.icon_png
+                    "image/svg+xml" -> R.drawable.icon_svg
+                    else -> R.drawable.icon_img // For other image types
+                }
+            }
+            mimeType == "application/pdf" -> R.drawable.icon_pdf
+            mimeType == "audio/mpeg" -> R.drawable.icon_mp3
+            mimeType == "video/x-msvideo" -> R.drawable.icon_avi
+            mimeType == "video/x-matroska" -> R.drawable.icon_mkv
+            mimeType == "application/vnd.ms-powerpoint" -> R.drawable.icon_ppt
+            mimeType == "application/vnd.ms-excel" -> R.drawable.icon_xls
+            mimeType == "application/zip" -> R.drawable.icon_zip
+            mimeType == "image/vnd.adobe.photoshop" -> R.drawable.icon_psd
+            mimeType == "text/plain" -> R.drawable.icon_txt
+            mimeType == "application/illustrator" -> R.drawable.icon_ai
+            mimeType == "application/msword" -> R.drawable.icon_doc
+            mimeType == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> R.drawable.icon_doc
+            mimeType == "application/vnd.openxmlformats-officedocument.presentationml.presentation" -> R.drawable.icon_ppt
+            mimeType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" -> R.drawable.icon_xls
+            mimeType == "application/json" -> R.drawable.icon_json
+            mimeType == "text/csv" -> R.drawable.icon_csv
             else -> R.drawable.icon_other // Replace with a default icon
         }
     }
+
     fun formatDate(inputDateString: String): String{
         val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
         val outputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())

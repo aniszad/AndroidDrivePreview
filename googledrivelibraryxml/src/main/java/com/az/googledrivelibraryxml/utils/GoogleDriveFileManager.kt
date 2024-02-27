@@ -1,19 +1,24 @@
 package com.az.googledrivelibraryxml.utils
 
 import android.app.DownloadManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.content.Context.NOTIFICATION_SERVICE
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.util.Log
 import android.view.Menu
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -23,17 +28,36 @@ import com.az.googledrivelibraryxml.adapters.GdFilesAdapter
 import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.*
 import com.az.googledrivelibraryxml.api.GoogleDriveApi
 import com.az.googledrivelibraryxml.models.FileDriveItem
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.services.drive.Drive
+import com.google.auth.http.HttpCredentialsAdapter
+import com.google.auth.oauth2.GoogleCredentials
+import com.google.auth.oauth2.ServiceAccountCredentials
+import com.google.common.reflect.Reflection.getPackageName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+
 
 class GoogleDriveFileManager(
     private val context: Context,
     private val rootFileId : String,
     private val lifecycleCoroutineScope: LifecycleCoroutineScope,
     private val permissions : Permissions,
-    jsonCredentialsPath: String,
-    applicationName: String,
+    private val jsonCredentialsPath: String,
+    private val applicationName: String,
 ) : FileOptions, AccessFileListener, AccessFolderListener {
 
     private lateinit var adapter: GdFilesAdapter
@@ -51,7 +75,7 @@ class GoogleDriveFileManager(
     }
 
     // API functions -------------------------------------------------------------------------------
-    private fun getFiles(rootFileId: String){
+    fun getFiles(rootFileId: String){
         adapter.showLoading()
         lifecycleCoroutineScope.launch {
             val files = googleDriveApi.getDriveFiles(rootFileId)
@@ -60,7 +84,7 @@ class GoogleDriveFileManager(
             }
         }
     }
-    private fun queryFiles(query: String) {
+    fun queryFiles(query: String) {
         adapter.showLoading()
         lifecycleCoroutineScope.launch {
             val files = googleDriveApi.queryDriveFiles(rootFileId, query)
@@ -81,8 +105,10 @@ class GoogleDriveFileManager(
     }
 
     // Adapter interfaces implementation -----------------------------------------------------------
-    override fun onDownload(downloadUrl: String, fileName : String) {
-        downloadFile(downloadUrl, fileName)
+    override fun onDownload(fileId: String, fileName : String) {
+        lifecycleCoroutineScope.launch {
+            googleDriveApi.downloadFileFromDrive(context, fileId, fileName)
+        }
     }
     override fun onShare(webViewLink: String) {
         shareFile(webViewLink)
@@ -255,6 +281,7 @@ class GoogleDriveFileManager(
 
         downloadManager.enqueue(request)
     }
+
     fun setRootFileName(rootFileName: String) {
         this.currentNamesPath[0] = rootFileName
         this.toolbar.title = rootFileName
@@ -274,6 +301,9 @@ class GoogleDriveFileManager(
             }
         })
     }
+
+
+
 
 
 }
