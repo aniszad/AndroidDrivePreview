@@ -7,16 +7,18 @@
             android:id="@+id/im_file_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="@dimen/_10sdp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:paddingStart="@dimen/_8sdp"
+            android:paddingEnd="@dimen/_2sdp"
+            app:layout_constraintTop_toTopOf="@id/ll_file_info"
+            app:layout_constraintBottom_toBottomOf="@id/ll_file_info"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/ll_file_info"
             android:src="@drawable/icon_pdf"
             />
         <LinearLayout
             android:id="@+id/ll_file_info"
             android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:padding="10dp"
             android:orientation="vertical"
             app:layout_constraintTop_toTopOf="parent"
@@ -34,6 +36,7 @@
                 android:textStyle="bold"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_11ssp"
+                android:paddingVertical="@dimen/_3sdp"
                 />
             <LinearLayout
                 android:layout_width="match_parent"
@@ -41,14 +44,14 @@
                 android:gravity="bottom"
                 >
                 <TextView
-                    android:id="@+id/tv_file_size"
+                    android:id="@+id/tv_creation_date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
                     android:textSize="@dimen/_8ssp"
                     />
                 <TextView
-                    android:id="@+id/tv_creation_date"
+                    android:id="@+id/tv_file_size"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
@@ -64,11 +67,12 @@
             android:id="@+id/btn_more"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:tint="@color/black"
             android:src="@drawable/icon_more_vertical"
             android:padding="@dimen/_5sdp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            />
+            android:contentDescription="@string/more_button" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

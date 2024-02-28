@@ -22,6 +22,7 @@ import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.AccessFileListener
 import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.AccessFolderListener
 import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.FileOptions
 import com.az.googledrivelibraryxml.api.GoogleDriveApi
+import com.az.googledrivelibraryxml.managers.GdCredentialsProvider
 import com.az.googledrivelibraryxml.models.FileDriveItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -33,13 +34,13 @@ class GoogleDriveFileManager(
     private val rootFileId : String,
     private val lifecycleCoroutineScope: LifecycleCoroutineScope,
     private val permissions : Permissions,
-    jsonCredentialsPath: String,
+    gdCredentialsProvider: GdCredentialsProvider,
     applicationName: String,
 ) : FileOptions, AccessFileListener, AccessFolderListener {
 
     private lateinit var adapter: GdFilesAdapter
     private var googleDriveApi: GoogleDriveApi =
-        GoogleDriveApi(jsonCredentialsPath = jsonCredentialsPath, appName = applicationName)
+        GoogleDriveApi(gdCredentialsProvider = gdCredentialsProvider, appName = applicationName)
     private lateinit var pathTextView : TextView
     // paths
     private val currentIdsPath = mutableListOf<String>()
@@ -56,17 +57,25 @@ class GoogleDriveFileManager(
         adapter.showLoading()
         lifecycleCoroutineScope.launch {
             val files = googleDriveApi.getDriveFiles(rootFileId)
-            withContext(Dispatchers.Main) {
-                updateRecyclerView(files)
+            if (files!=null){
+                withContext(Dispatchers.Main) {
+                    updateRecyclerView(orderByFoldersFirst(files))
+                }
             }
         }
+    }
+    private fun orderByFoldersFirst(files: List<FileDriveItem>): List<FileDriveItem> {
+        return files.sortedWith(compareBy<FileDriveItem> { it.mimeType != "application/vnd.google-apps.folder" }
+            .thenBy { it.fileName })
     }
     fun queryFiles(query: String) {
         adapter.showLoading()
         lifecycleCoroutineScope.launch {
             val files = googleDriveApi.queryDriveFiles(rootFileId, query)
-            withContext(Dispatchers.Main) {
-                updateRecyclerView(files)
+            if (files!=null){
+                withContext(Dispatchers.Main) {
+                    updateRecyclerView(orderByFoldersFirst(files))
+                }
             }
         }
     }

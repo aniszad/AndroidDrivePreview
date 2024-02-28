@@ -5,8 +5,8 @@ data class FileDriveItem(
     val fileName: String,
     val mimeType: String,
     val size : Long,
-    val lastModified : String,
+    val createdDate : String,
     val downloadUrl : String,
     val webViewLink : String,
-) : FileSystemItem(fileName, "", mimeType, size)
+)
 

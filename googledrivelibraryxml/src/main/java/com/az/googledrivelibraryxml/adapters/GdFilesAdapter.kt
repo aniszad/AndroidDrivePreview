@@ -16,9 +16,8 @@ import com.az.googledrivelibraryxml.databinding.LoadingBarLayoutBinding
 import com.az.googledrivelibraryxml.databinding.NoDataLayoutItemBinding
 import com.az.googledrivelibraryxml.models.FileDriveItem
 import com.az.googledrivelibraryxml.models.ItemType
+import com.az.googledrivelibraryxml.utils.CustomDateFormatter
 import com.az.googledrivelibraryxml.utils.Permissions
-import java.text.SimpleDateFormat
-import java.util.Locale
 import kotlin.math.pow
 
 class GdFilesAdapter(
@@ -31,6 +30,7 @@ class GdFilesAdapter(
     private lateinit var accessFileListener : AccessFileListener
     private lateinit var accessFolderListener: AccessFolderListener
     private var isLoading = true
+    private var customDateFormatter = CustomDateFormatter()
     inner class FileViewHolder(binding: GoogleDriveItemLayoutBinding) : RecyclerView.ViewHolder(binding.root) {
         val iconFileType = binding.imFileType
         val btnMore = binding.btnMore
@@ -124,7 +124,7 @@ class GdFilesAdapter(
                         tvFileName.text = currentItem.fileName
                         btnMore.visibility = View.GONE
                         tvFileSize.text = ""
-                        tvCreationDate.text = formatDate(currentItem.lastModified)
+                        tvCreationDate.text = customDateFormatter.formatDate(currentItem.createdDate)
                         iconFileType.setImageDrawable(ContextCompat.getDrawable(
                             context,
                             getIconFromMimeType(currentItem.mimeType)
@@ -138,7 +138,7 @@ class GdFilesAdapter(
                     }else{
                         tvFileName.text = currentItem.fileName
                         tvFileSize.text = formatSize(currentItem.size)
-                        tvCreationDate.text = formatDate(currentItem.lastModified)
+                        tvCreationDate.text = customDateFormatter.formatDate(currentItem.createdDate)
                         iconFileType.setImageDrawable(ContextCompat.getDrawable(
                             context,
                             getIconFromMimeType(currentItem.mimeType)
@@ -241,14 +241,6 @@ class GdFilesAdapter(
             mimeType == "application/x-zip-compressed" -> R.drawable.icon_zip // Adding RAR icon
             else -> R.drawable.icon_other // Replace with a default icon
         }
-    }
-
-
-    private fun formatDate(inputDateString: String): String{
-        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        val outputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        val date = inputFormat.parse(inputDateString)
-        return date?.let { outputFormat.format(it) } ?: ""
     }
 
     private fun fileOrDirectory(mimeType: String): ItemType {

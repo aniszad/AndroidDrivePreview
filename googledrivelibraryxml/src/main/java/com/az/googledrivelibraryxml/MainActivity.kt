@@ -7,6 +7,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import com.az.googledrivelibraryxml.databinding.ActivityMainBinding
 import com.az.googledrivelibraryxml.utils.GoogleDriveFileManager
@@ -20,15 +21,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
 
         gdm = GoogleDriveFileManager(
             this@MainActivity,
             "1ZEmBUIPWUXr_nae82N7qQHudIFwaxRe5",
             lifecycleScope,
-            Permissions.ADMIN,
-            "res/raw/credentials.json",
+            Permissions.USER,
+            CredentialsProvider(),
             "test",
 
         )

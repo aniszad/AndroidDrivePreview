@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Environment
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.az.googledrivelibraryxml.managers.GdCredentialsProvider
 import com.az.googledrivelibraryxml.models.FileDriveItem
 import com.az.googledrivelibraryxml.models.ItemType
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
@@ -22,13 +23,11 @@ import com.google.auth.http.HttpCredentialsAdapter
 import com.google.auth.oauth2.GoogleCredentials
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
-import java.io.InputStream
 import java.io.OutputStream
 
-class GoogleDriveApi(jsonCredentialsPath : String, private val appName : String) {
+class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider, private val appName : String) {
 
     private var driveService: Drive
     private var googleCredentials: GoogleCredentials
@@ -40,13 +39,10 @@ class GoogleDriveApi(jsonCredentialsPath : String, private val appName : String)
     }
 
     init {
-        // Load client secrets from your credentials file
-        val inputStream: InputStream =
-            this@GoogleDriveApi::class.java.classLoader!!.getResourceAsStream(
-                jsonCredentialsPath
-            )
-                ?: throw FileNotFoundException("Resource not found: $jsonCredentialsPath")
-        inputStream.use { `in` ->
+        // getting the input stream of the credentials file
+        val credentialsInputStream = gdCredentialsProvider.getCredentials()
+        Log.e("rar", credentialsInputStream.toString())
+        credentialsInputStream.use { `in` ->
             googleCredentials = GoogleCredentials.fromStream(`in`).createScoped(
                 SCOPES
             )
@@ -81,7 +77,7 @@ class GoogleDriveApi(jsonCredentialsPath : String, private val appName : String)
                         } else {
                             0L
                         },
-                        lastModified = file.createdTime.toString(),
+                        createdDate = file.createdTime.toString(),
                         downloadUrl = if (fileOrDirectory(file.mimeType) == ItemType.FILE) {
 
                             file.webContentLink
@@ -118,7 +114,7 @@ class GoogleDriveApi(jsonCredentialsPath : String, private val appName : String)
                         fileName = file.name,
                         mimeType = (file.mimeType),
                         size = file.size.toLong(),
-                        lastModified = file.createdTime?.toString() ?: "",
+                        createdDate = file.createdTime?.toString() ?: "",
                         downloadUrl = if (fileOrDirectory(file.mimeType) == ItemType.FILE) {
                             file.webContentLink
                         } else {
@@ -138,6 +134,7 @@ class GoogleDriveApi(jsonCredentialsPath : String, private val appName : String)
             null
         }
     }
+
     suspend fun deleteFolder(folderId: String) : Boolean{
         return try{
             withContext(Dispatchers.IO){
@@ -149,6 +146,7 @@ class GoogleDriveApi(jsonCredentialsPath : String, private val appName : String)
             false
         }
     }
+
     private fun fileOrDirectory(mimeType: String): ItemType {
         return if (mimeType == "application/vnd.google-apps.folder"){
             ItemType.FOLDER
