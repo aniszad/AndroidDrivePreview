@@ -1,12 +1,12 @@
 package com.az.googledrivelibraryxml.utils
 
-import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.net.Uri
-import android.os.Environment
+import android.util.Log
 import android.view.Menu
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.az.googledrivelibraryxml.R
 import com.az.googledrivelibraryxml.adapters.GdFilesAdapter
 import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.AccessFileListener
@@ -47,6 +48,8 @@ class GoogleDriveFileManager(
     private var currentNamesPath = mutableListOf("")
     private lateinit var toolbar: Toolbar
     private val createFolderDialog =  CreateFileDialog(context)
+    private lateinit var swipeRefreshLayout :   SwipeRefreshLayout
+    private lateinit var recyclerView : RecyclerView
 
     init {
         currentIdsPath.add(rootFileId)
@@ -165,9 +168,31 @@ class GoogleDriveFileManager(
         recyclerView.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         recyclerView.adapter = adapter
+        this.recyclerView = recyclerView
         getFiles(rootFileId)
         return this@GoogleDriveFileManager
     }
+
+    fun setRefreshableRecyclerView(swipeRefreshLayout: SwipeRefreshLayout, recyclerView: RecyclerView): GoogleDriveFileManager {
+        adapter = GdFilesAdapter(context, emptyList(), listOf(permissions))
+        adapter.setFileOptionsInterface(this@GoogleDriveFileManager)
+        adapter.setAccessFileListener(this@GoogleDriveFileManager)
+        adapter.setAccessFolderListener(this@GoogleDriveFileManager)
+        recyclerView.layoutManager =
+            LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+        recyclerView.adapter = adapter
+        this.recyclerView = recyclerView
+        this.swipeRefreshLayout=swipeRefreshLayout
+            swipeRefreshLayout.setOnRefreshListener {
+                Log.e("refresh swiped", "true")
+                swipeRefreshLayout.isRefreshing = true
+                getFiles(currentIdsPath.last())
+            }
+
+        getFiles(rootFileId)
+        return this@GoogleDriveFileManager
+    }
+
     fun setPathTextView(textView: TextView): GoogleDriveFileManager {
         this.pathTextView = textView
         this.pathTextView.text = currentNamesPath.first()
@@ -224,6 +249,10 @@ class GoogleDriveFileManager(
 
     // UI updates ----------------------------------------------------------------------------------
     private fun updateRecyclerView(files: List<FileDriveItem>?) {
+        Log.e("refreshing", "${::swipeRefreshLayout.isInitialized && swipeRefreshLayout.isRefreshing}")
+        if (::swipeRefreshLayout.isInitialized && swipeRefreshLayout.isRefreshing){
+            this@GoogleDriveFileManager.swipeRefreshLayout.isRefreshing = false
+        }
         if (files!=null){
             adapter.updateData(files)
             adapter.hideLoading()

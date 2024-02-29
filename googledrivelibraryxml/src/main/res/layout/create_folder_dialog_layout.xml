@@ -2,12 +2,12 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layoutDirection="ltr"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <androidx.cardview.widget.CardView
         android:layout_width="@dimen/_210sdp"
         android:layout_height="@dimen/_100sdp"
         app:cardCornerRadius="12dp"
+        app:cardBackgroundColor="@color/white"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -24,11 +24,11 @@
                 android:layout_height="wrap_content"
                 android:text="@string/create_folder_title"
                 android:textStyle="bold"
+                android:paddingTop="@dimen/_8sdp"
                 android:paddingHorizontal="@dimen/_8sdp"
                 android:textSize="@dimen/_11ssp"
                 android:layoutDirection="locale"
                 android:textColor="@color/black"
-                app:layout_constraintBottom_toTopOf="@id/tv_title"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 />
@@ -38,10 +38,15 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/title"
                 android:textSize="@dimen/_10ssp"
+                android:padding="@dimen/_6sdp"
+                android:background="@null"
+                android:textColorHint="@android:color/darker_gray"
                 android:paddingHorizontal="@dimen/_8sdp"
                 android:layoutDirection="locale"
                 app:layout_constraintTop_toBottomOf="@id/tv_title"
-                />
+                app:layout_constraintBottom_toTopOf="@id/btn_cancel"
+                android:autofillHints=""
+                android:inputType="text" />
             <TextView
                 android:id="@+id/btn_cancel"
                 android:layout_width="@dimen/_80sdp"

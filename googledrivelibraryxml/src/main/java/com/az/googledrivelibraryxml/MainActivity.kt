@@ -30,12 +30,12 @@ class MainActivity : AppCompatActivity() {
             this@MainActivity,
             "1ZEmBUIPWUXr_nae82N7qQHudIFwaxRe5",
             lifecycleScope,
-            Permissions.USER,
+            Permissions.ADMIN,
             CredentialsProvider(),
             "test",
 
         )
-        gdm.setRecyclerView(binding.recyclerView)
+        gdm.setRefreshableRecyclerView(binding.swipeRefreshLayout, binding.recyclerView)
             .setActionBar(binding.toolbar)
             .setPathTextView(binding.tvPath)
             .setRootFileName("Files Bank")
