@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Environment
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.az.googledrivelibraryxml.exceptions.DriveApiException
 import com.az.googledrivelibraryxml.managers.GdCredentialsProvider
 import com.az.googledrivelibraryxml.models.FileDriveItem
 import com.az.googledrivelibraryxml.models.ItemType
@@ -37,11 +38,9 @@ class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider, private val 
             GsonFactory.getDefaultInstance()
         val SCOPES = listOf(DriveScopes.DRIVE)
     }
-
     init {
         // getting the input stream of the credentials file
-        val credentialsInputStream = gdCredentialsProvider.getCredentials()
-        Log.e("rar", credentialsInputStream.toString())
+        var credentialsInputStream = gdCredentialsProvider.getCredentials()
         credentialsInputStream.use { `in` ->
             googleCredentials = GoogleCredentials.fromStream(`in`).createScoped(
                 SCOPES
@@ -63,7 +62,6 @@ class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider, private val 
                     .setFields("files(id, name, size, mimeType, webContentLink,webViewLink, createdTime, exportLinks)")
                     .execute()
             }
-
             val queryResultList = mutableListOf<FileDriveItem>()
             Log.e("rar", files.files.toString())
             for (file in files.files) {
@@ -94,7 +92,7 @@ class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider, private val 
             }
             queryResultList
         } catch (e: IOException) {
-            Log.e("ERROR WHILE GETTING FILES ", e.message.toString())
+            Log.e("ERROR WHILE GETTING FILES", "An error occurred while fetching files: ${e.message}", e)
             null
         }
     }
@@ -130,7 +128,7 @@ class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider, private val 
             }
             queryResultList
         } catch (e: IOException) {
-            Log.e("ERROR WHILE GETTING FILES ", e.message.toString())
+            Log.e("ERROR WHILE QUERYING FILES", "An error occurred while fetching files: ${e.message}", e)
             null
         }
     }
@@ -142,7 +140,10 @@ class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider, private val 
             }
             true
         }catch (e : IOException){
-            Log.e("ERROR WHILE DELETING FILE", e.message.toString())
+            Log.e("ERROR WHILE DELETING FILES", "An error occurred while fetching files: ${e.message}", e)
+            false
+        }catch (e : Exception){
+            Log.e("ERROR WHILE DELETING FILES", "An error occurred while fetching files: ${e.message}", e)
             false
         }
     }
@@ -155,85 +156,71 @@ class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider, private val 
         }
     }
     suspend fun createFolder(folderName: String, parentFolderId : String): String? {
-        try {
+        return try {
             val fileMetadata = File()
             fileMetadata.name = folderName
             fileMetadata.mimeType = "application/vnd.google-apps.folder"
             fileMetadata.parents = listOf(parentFolderId)
-
             val createdFile = withContext(Dispatchers.IO) {
-                try {
                     driveService.files().create(fileMetadata).execute()
-                } catch (e: Exception) {
-                    Log.e("createFolder", "Error creating folder:", e)
-                    throw e // Re-throw to be handled in the main thread
-                }
             }
-
-            return createdFile.id
-
+            createdFile?.id
         } catch (e: IOException) {
-            Log.e("createFolder", "Error creating folder:", e)
-            // Provide user-friendly feedback based on error details
-            return null
+            Log.e("ERROR WHILE FILE CREATION", "An error occurred while fetching files: ${e.message}", e)
+            null
         } catch (e: SecurityException) {
-            Log.e("createFolder", "Unauthorized access or insufficient permissions:", e)
-            // Notify user and request necessary permissions
-            return null
+            Log.e("ERROR WHILE FILE CREATION", "An error occurred while fetching files: ${e.message}", e)
+            null
         } catch (e: Exception) {
-            Log.e("createFolder", "Unexpected error:", e)
-            // Provide generic error message and consider retry logic
-            return null
+            Log.e("ERROR WHILE FILE CREATION", "An error occurred while fetching files: ${e.message}", e)
+            null
         }
     }
-
     suspend fun downloadFileFromDrive(
         context: Context,
         fileId: String,
         fileName: String,
     ) {
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val notificationId = 321
-        val channelId = "download_channel"
-        val channelName = "Download Channel"
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
-            channel.description = "Channel for download notifications"
-            channel.enableLights(true)
-            channel.lightColor = Color.BLUE
-            notificationManager.createNotificationChannel(channel)
-        } else {
-            // For pre-Oreo versions, use deprecated NotificationCompat.Builder
-            val notificationBuilder = NotificationCompat.Builder(context, channelId)
-                .setContentTitle("Download Notification")
-                .setContentText("Download in progress...")
-                .setLights(Color.BLUE, 1000, 1000) // Set LED light behavior (deprecated)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setAutoCancel(true)
-
-            notificationManager.notify(notificationId, notificationBuilder.build())
-        }
-
-        // Notification for download start
-        val startNotification = NotificationCompat.Builder(context, channelId)
-            .setContentTitle("Downloading")
-            .setContentText(fileName)
-            .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setOngoing(true)
-            .build()
-
-        notificationManager.notify(notificationId, startNotification)
-
         try {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationId = 321
+            val channelId = "download_channel"
+            val channelName = "Download Channel"
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
+                channel.description = "Channel for download notifications"
+                channel.enableLights(true)
+                channel.lightColor = Color.BLUE
+                notificationManager.createNotificationChannel(channel)
+            } else {
+                // For pre-Oreo versions, use deprecated NotificationCompat.Builder
+                val notificationBuilder = NotificationCompat.Builder(context, channelId)
+                    .setContentTitle("Download Notification")
+                    .setContentText("Download in progress...")
+                    .setLights(Color.BLUE, 1000, 1000) // Set LED light behavior (deprecated)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setAutoCancel(true)
+                notificationManager.notify(notificationId, notificationBuilder.build())
+            }
+
+            // Notification for download start
+            val startNotification = NotificationCompat.Builder(context, channelId)
+                .setContentTitle("Downloading")
+                .setContentText(fileName)
+                .setSmallIcon(android.R.drawable.stat_sys_download)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setOngoing(true)
+                .build()
+
+            notificationManager.notify(notificationId, startNotification)
+
+            // initiating download
             val httpTransport = GoogleNetHttpTransport.newTrustedTransport()
             val driveService = Drive.Builder(httpTransport, JacksonFactory(), HttpCredentialsAdapter(googleCredentials))
                 .setApplicationName(appName)
                 .build()
-
             val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             val filePath = java.io.File(downloadsDir, fileName)
-
             withContext(Dispatchers.IO) {
                 val outputStream: OutputStream = FileOutputStream(filePath)
                 driveService.files().get(fileId).executeMediaAndDownloadTo(outputStream)
@@ -249,7 +236,11 @@ class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider, private val 
             notificationManager.notify(notificationId, completionNotification)
 
         } catch (e: IOException) {
-            // Handle IO exceptions
+            Log.e("ERROR WHILE FILE CREATION", "An error occurred while fetching files: ${e.message}", e)
+        } catch (e: SecurityException) {
+            Log.e("ERROR WHILE FILE CREATION", "An error occurred while fetching files: ${e.message}", e)
+        } catch (e: Exception) {
+            Log.e("ERROR WHILE FILE CREATION", "An error occurred while fetching files: ${e.message}", e)
         }
     }
 

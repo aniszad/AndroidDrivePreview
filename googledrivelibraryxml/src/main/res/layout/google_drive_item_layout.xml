@@ -24,14 +24,14 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toEndOf="@id/im_file_type"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/btn_more"
+            app:layout_constraintEnd_toStartOf="@id/btn_copy"
             >
             <com.az.googledrivelibraryxml.utils.TextViewOpenSans
                 android:id="@+id/tv_file_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/title"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:ellipsize="end"
                 android:textStyle="bold"
                 android:textColor="@color/black"
@@ -73,6 +73,20 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/btn_copy"
             android:contentDescription="@string/more_button" />
+        <ImageView
+            android:id="@+id/btn_copy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:tint="@color/black"
+            android:src="@drawable/icon_copy"
+            android:padding="@dimen/_5sdp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@id/ll_file_info"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btn_more"
+            android:contentDescription="@string/more_button" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

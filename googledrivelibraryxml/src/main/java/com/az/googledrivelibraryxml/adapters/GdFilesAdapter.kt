@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.az.googledrivelibraryxml.R
 import com.az.googledrivelibraryxml.databinding.EmptyLayoutItemBinding
@@ -17,8 +16,8 @@ import com.az.googledrivelibraryxml.databinding.NoDataLayoutItemBinding
 import com.az.googledrivelibraryxml.models.FileDriveItem
 import com.az.googledrivelibraryxml.models.ItemType
 import com.az.googledrivelibraryxml.utils.CustomDateFormatter
+import com.az.googledrivelibraryxml.utils.FileDetailsAdapter
 import com.az.googledrivelibraryxml.utils.Permissions
-import kotlin.math.pow
 
 class GdFilesAdapter(
     private val context: Context,
@@ -31,9 +30,12 @@ class GdFilesAdapter(
     private lateinit var accessFolderListener: AccessFolderListener
     private var isLoading = true
     private var customDateFormatter = CustomDateFormatter()
+    private val fileDetailsAdapter = FileDetailsAdapter()
+
     inner class FileViewHolder(binding: GoogleDriveItemLayoutBinding) : RecyclerView.ViewHolder(binding.root) {
         val iconFileType = binding.imFileType
         val btnMore = binding.btnMore
+        val btnCopy = binding.btnCopy
         val tvFileName = binding.tvFileName
         val tvFileSize = binding.tvFileSize
         val tvCreationDate = binding.tvCreationDate
@@ -60,6 +62,7 @@ class GdFilesAdapter(
         fun onDownload(fileId: String, fileName:String)
         fun onShare(webViewLink: String)
         fun onDelete(fileId:String)
+        fun copyFilePath(fileName: String)
     }
     fun setFileOptionsInterface(fileOptions: FileOptions){
         this.fileOptions = fileOptions
@@ -116,52 +119,42 @@ class GdFilesAdapter(
         }
     }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        when(holder){
-            is FileViewHolder ->{
-                val currentItem = filesList[position]
-                holder.apply {
-                    if (fileOrDirectory(currentItem.mimeType) == ItemType.FOLDER){
-                        tvFileName.text = currentItem.fileName
-                        btnMore.visibility = View.GONE
-                        tvFileSize.text = ""
-                        tvCreationDate.text = customDateFormatter.formatDate(currentItem.createdDate)
-                        iconFileType.setImageDrawable(ContextCompat.getDrawable(
-                            context,
-                            getIconFromMimeType(currentItem.mimeType)
-                        ))
-                        btnMore.setOnClickListener {
-                            showOptionsMenu(it,currentItem)
-                        }
-                        root.setOnClickListener {
-                            accessFolderListener.onOpenFolder(currentItem.fileId, folderName = currentItem.fileName)
-                        }
-                    }else{
-                        tvFileName.text = currentItem.fileName
-                        tvFileSize.text = formatSize(currentItem.size)
-                        tvCreationDate.text = customDateFormatter.formatDate(currentItem.createdDate)
-                        iconFileType.setImageDrawable(ContextCompat.getDrawable(
-                            context,
-                            getIconFromMimeType(currentItem.mimeType)
-                        ))
-                        btnMore.setOnClickListener {
-                            showOptionsMenu(it,currentItem)
-                        }
-                        root.setOnClickListener {
-                            accessFileListener.onOpenFile(currentItem.webViewLink)
-                        }
+        if (holder is FileViewHolder) {
+            val currentItem = filesList[position]
+            val isFolder = fileDetailsAdapter.fileOrDirectory(currentItem.mimeType) == ItemType.FOLDER
+
+            with(holder) {
+                tvFileName.text = currentItem.fileName
+                tvCreationDate.text = customDateFormatter.formatDate(currentItem.createdDate)
+                iconFileType.setImageDrawable(
+                    fileDetailsAdapter.getIconFromMimeType(context, currentItem.mimeType)
+                )
+
+                btnMore.visibility = if (isFolder) View.GONE else View.VISIBLE
+                btnCopy.visibility = if (isFolder) View.GONE else View.VISIBLE
+                tvFileSize.text = if (isFolder) "" else fileDetailsAdapter.formatSize(currentItem.size)
+
+                btnMore.setOnClickListener { showMorePopupMenu(it, currentItem) }
+                btnCopy.setOnClickListener { fileOptions.copyFilePath(currentItem.fileName) }
+                root.setOnClickListener {
+                    if (isFolder) {
+                        accessFolderListener.onOpenFolder(currentItem.fileId, folderName = currentItem.fileName)
+                    } else {
+                        accessFileListener.onOpenFile(currentItem.webViewLink)
                     }
                 }
             }
         }
-
     }
+
     @SuppressLint("NotifyDataSetChanged")
     fun updateData(files: List<FileDriveItem>) {
         this.filesList = files
         notifyDataSetChanged()
     }
-    // Non adapter functions
-    private fun showOptionsMenu(anchorView: View, currentItem: FileDriveItem) {
+
+
+    private fun showMorePopupMenu(anchorView: View, currentItem: FileDriveItem) {
         val popupMenu = PopupMenu(context, anchorView)
         popupMenu.menuInflater.inflate(R.menu.file_options_menu, popupMenu.menu)
         popupMenu.menu.findItem(R.id.btn_download).isVisible = permissions.contains(Permissions.USER) || permissions.contains(
@@ -190,66 +183,7 @@ class GdFilesAdapter(
 
         popupMenu.show()
     }
-    private fun formatSize(size: Long): String {
 
-        return when{
-            size == 0L ->{""}
-
-            size/1000.0.pow(3.0) >= 1000 ->{
-                "${size/ 1000.0.pow(3.0)} GB"
-            }
-            (size/1000.0.pow(2.0) >= 1000) ->{
-                "${size/1000.0.pow(2.0)} MB"
-            }
-            size/1000 < 1000 ->{
-                "${size/1000} KB"
-            }
-            else ->{""}
-        }
-    }
-    private fun getIconFromMimeType(mimeType: String): Int {
-        if (fileOrDirectory(mimeType) == ItemType.FOLDER) {
-            return R.drawable.icon_folder
-        }
-        return when {
-            mimeType.startsWith("image/") -> {
-                when (mimeType) {
-                    "image/gif" -> R.drawable.icon_gif
-                    "image/jpeg" -> R.drawable.icon_jpg
-                    "image/png" -> R.drawable.icon_png
-                    "image/svg+xml" -> R.drawable.icon_svg
-                    else -> R.drawable.icon_img // For other image types
-                }
-            }
-            mimeType == "application/pdf" -> R.drawable.icon_pdf
-            mimeType == "audio/mpeg" -> R.drawable.icon_mp3
-            mimeType == "video/x-msvideo" -> R.drawable.icon_avi
-            mimeType == "video/x-matroska" -> R.drawable.icon_mkv
-            mimeType == "application/vnd.ms-powerpoint" -> R.drawable.icon_ppt
-            mimeType == "application/vnd.ms-excel" -> R.drawable.icon_xls
-            mimeType == "application/zip" -> R.drawable.icon_zip
-            mimeType == "image/vnd.adobe.photoshop" -> R.drawable.icon_psd
-            mimeType == "text/plain" -> R.drawable.icon_txt
-            mimeType == "application/illustrator" -> R.drawable.icon_ai
-            mimeType == "application/msword" -> R.drawable.icon_doc
-            mimeType == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> R.drawable.icon_doc
-            mimeType == "application/vnd.openxmlformats-officedocument.presentationml.presentation" -> R.drawable.icon_ppt
-            mimeType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" -> R.drawable.icon_xls
-            mimeType == "application/json" -> R.drawable.icon_json
-            mimeType == "text/csv" -> R.drawable.icon_csv
-            mimeType == "application/x-rar-compressed" -> R.drawable.icon_rar // Adding RAR icon
-            mimeType == "application/x-zip-compressed" -> R.drawable.icon_zip // Adding RAR icon
-            else -> R.drawable.icon_other // Replace with a default icon
-        }
-    }
-
-    private fun fileOrDirectory(mimeType: String): ItemType {
-        return if (mimeType == "application/vnd.google-apps.folder"){
-            ItemType.FOLDER
-        }else{
-            ItemType.FILE
-        }
-    }
     @SuppressLint("NotifyDataSetChanged")
     fun showLoading() {
         this.filesList = emptyList()
