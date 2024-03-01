@@ -32,6 +32,7 @@ import com.az.googledrivelibraryxml.models.FileDriveItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.internal.userAgent
 
 
 class GoogleDriveFileManager(
@@ -45,8 +46,7 @@ class GoogleDriveFileManager(
     private lateinit var adapter: GdFilesAdapter
     private var googleDriveApi: GoogleDriveApi =
         GoogleDriveApi(gdCredentialsProvider = gdCredentialsProvider, appName = applicationName)
-    private lateinit var clipboardManager: ClipboardManager
-    private lateinit var pathTextView : TextView
+    private var clipboardManager: ClipboardManager
     private val currentIdsPath = mutableListOf<String>()
     private var currentNamesPath = mutableListOf("Drive Folder")
     private lateinit var toolbar: Toolbar
@@ -54,13 +54,13 @@ class GoogleDriveFileManager(
     private lateinit var swipeRefreshLayout :   SwipeRefreshLayout
     private lateinit var recyclerView : RecyclerView
     private lateinit var rootFolderId : String
-
+    private var filePathCopyable = false
+    private var useNavigationPath = false
 
 
     init {
         val clipboardServiceClass = Class.forName("android.content.ClipboardManager")
         clipboardManager = getSystemService(context, clipboardServiceClass) as ClipboardManager
-
     }
 
 
@@ -143,7 +143,7 @@ class GoogleDriveFileManager(
     }
     override fun copyFilePath(fileName: String) {
         var formattedPath = ""
-        var pathList = currentNamesPath
+        val pathList = currentNamesPath
         pathList.add(fileName)
         for (name in pathList){
             formattedPath += buildString {
@@ -218,7 +218,7 @@ class GoogleDriveFileManager(
         toolbar.title = folderName
     }
     private fun updateTextPathView() {
-        if (::pathTextView.isInitialized){
+        if (::toolbar.isInitialized){
             var formattedPath = ""
             for (name in currentNamesPath){
                 formattedPath += buildString {
@@ -226,9 +226,8 @@ class GoogleDriveFileManager(
                     append(name)
                 }
             }
-            this.pathTextView.text = formattedPath
+            if(useNavigationPath) this.toolbar.subtitle = formattedPath
         }
-
     }
 
     //______________________________________________________________________________________________
@@ -242,14 +241,14 @@ class GoogleDriveFileManager(
     ////////////////////////////////////////////////////////////////////////////////////////////////
     fun setRootFileName(rootFileName: String): GoogleDriveFileManager {
         this.currentNamesPath[0] = rootFileName
-        this.pathTextView.text = buildString {
+        if(useNavigationPath) this.toolbar.subtitle = buildString {
             append("$rootFileName/")
         }
         this.toolbar.title = rootFileName
         return this@GoogleDriveFileManager
     }
     fun setRecyclerView(recyclerView: RecyclerView): GoogleDriveFileManager {
-        adapter = GdFilesAdapter(context, emptyList(), listOf(permissions))
+        adapter = GdFilesAdapter(context, emptyList(), listOf(permissions), filePathCopyable)
         adapter.setFileOptionsInterface(this@GoogleDriveFileManager)
         adapter.setAccessFileListener(this@GoogleDriveFileManager)
         adapter.setAccessFolderListener(this@GoogleDriveFileManager)
@@ -260,7 +259,7 @@ class GoogleDriveFileManager(
         return this@GoogleDriveFileManager
     }
     fun setRefreshableRecyclerView(swipeRefreshLayout: SwipeRefreshLayout, recyclerView: RecyclerView): GoogleDriveFileManager {
-        adapter = GdFilesAdapter(context, emptyList(), listOf(permissions))
+        adapter = GdFilesAdapter(context, emptyList(), listOf(permissions), filePathCopyable)
         adapter.setFileOptionsInterface(this@GoogleDriveFileManager)
         adapter.setAccessFileListener(this@GoogleDriveFileManager)
         adapter.setAccessFolderListener(this@GoogleDriveFileManager)
@@ -274,11 +273,6 @@ class GoogleDriveFileManager(
             Log.e("check", "$currentNamesPath, $currentIdsPath")
             getFiles(currentNamesPath.last(), currentIdsPath.last())
         }
-        return this@GoogleDriveFileManager
-    }
-    fun setPathTextView(textView: TextView): GoogleDriveFileManager {
-        this.pathTextView = textView
-        this.pathTextView.text = currentNamesPath.first()
         return this@GoogleDriveFileManager
     }
     fun setAccessFileListener(accessFileListener: AccessFileListener): GoogleDriveFileManager {
@@ -320,7 +314,6 @@ class GoogleDriveFileManager(
         }
         return this@GoogleDriveFileManager
     }
-
     fun initialize() {
         if (::rootFolderId.isInitialized){
             getFiles(currentNamesPath[0], rootFolderId)
@@ -328,10 +321,18 @@ class GoogleDriveFileManager(
             throw DriveRootException("Root folder id not provided")
         }
     }
-
     fun setRootFileId(rootFileId: String): GoogleDriveFileManager {
         this.rootFolderId = rootFileId
         currentIdsPath.add(0, rootFileId)
+        return this@GoogleDriveFileManager
+    }
+    fun setFilePathCopyable(filePathCopyable : Boolean): GoogleDriveFileManager {
+        this.filePathCopyable = filePathCopyable
+        adapter.updateFilePathCopyable(filePathCopyable)
+        return this@GoogleDriveFileManager
+    }
+    fun activateNavigationPath(useNavigationPath : Boolean): GoogleDriveFileManager {
+        this.useNavigationPath = useNavigationPath
         return this@GoogleDriveFileManager
     }
 

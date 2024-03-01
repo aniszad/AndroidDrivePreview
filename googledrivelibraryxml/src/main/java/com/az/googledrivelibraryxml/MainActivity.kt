@@ -37,8 +37,9 @@ class MainActivity : AppCompatActivity() {
         gdm.setRefreshableRecyclerView(binding.swipeRefreshLayout, binding.recyclerView)
             .setActionBar(binding.toolbar)
             .setRootFileId("1ZEmBUIPWUXr_nae82N7qQHudIFwaxRe5")
-            .setPathTextView(binding.tvPath)
             .setRootFileName("Files Bank")
+            .activateNavigationPath(true)
+            .setFilePathCopyable(false)
             .initialize()
 
 

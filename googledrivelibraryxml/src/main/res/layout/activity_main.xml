@@ -13,19 +13,14 @@
         android:layout_height="wrap_content"
         android:backgroundTint="@color/black"
         app:titleTextColor="@color/black"
+        app:subtitleTextColor="@color/black"
         app:layout_constraintTop_toTopOf="parent"
        />
-    <TextView
-        android:id="@+id/tv_path"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
-        />
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/tv_path"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
         >
 
         <androidx.recyclerview.widget.RecyclerView

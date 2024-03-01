@@ -22,7 +22,8 @@ import com.az.googledrivelibraryxml.utils.Permissions
 class GdFilesAdapter(
     private val context: Context,
     private var filesList : List<FileDriveItem>,
-    private val permissions : List<Permissions>
+    private val permissions : List<Permissions> ,
+    private var filePathCopyable : Boolean
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private lateinit var fileOptions : FileOptions
@@ -131,7 +132,7 @@ class GdFilesAdapter(
                 )
 
                 btnMore.visibility = if (isFolder) View.GONE else View.VISIBLE
-                btnCopy.visibility = if (isFolder) View.GONE else View.VISIBLE
+                btnCopy.visibility = if (isFolder || !filePathCopyable) View.GONE else View.VISIBLE
                 tvFileSize.text = if (isFolder) "" else fileDetailsAdapter.formatSize(currentItem.size)
 
                 btnMore.setOnClickListener { showMorePopupMenu(it, currentItem) }
@@ -152,7 +153,6 @@ class GdFilesAdapter(
         this.filesList = files
         notifyDataSetChanged()
     }
-
 
     private fun showMorePopupMenu(anchorView: View, currentItem: FileDriveItem) {
         val popupMenu = PopupMenu(context, anchorView)
@@ -192,6 +192,12 @@ class GdFilesAdapter(
     }
     fun hideLoading() {
         isLoading = false
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun updateFilePathCopyable(filePathCopyable : Boolean){
+        this.filePathCopyable = filePathCopyable
+        notifyDataSetChanged()
     }
 
     companion object{
