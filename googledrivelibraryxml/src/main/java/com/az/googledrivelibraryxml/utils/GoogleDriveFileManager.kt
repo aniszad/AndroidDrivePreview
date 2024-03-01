@@ -27,6 +27,7 @@ import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.AccessFolderListener
 import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.FileOptions
 import com.az.googledrivelibraryxml.api.GoogleDriveApi
 import com.az.googledrivelibraryxml.exceptions.DriveRootException
+import com.az.googledrivelibraryxml.exceptions.DriveUiElementsMissing
 import com.az.googledrivelibraryxml.managers.GdCredentialsProvider
 import com.az.googledrivelibraryxml.models.FileDriveItem
 import kotlinx.coroutines.Dispatchers
@@ -210,12 +211,13 @@ class GoogleDriveFileManager(
         }
     }
     private fun updateToolbar(folderName: String, folderId:String) {
-        if (folderId == this.rootFolderId){
-            toolbar.navigationIcon = null
+        if (::toolbar.isInitialized){
+            toolbar.navigationIcon =  if (folderId == this.rootFolderId) null else
+                ContextCompat.getDrawable(context, R.drawable.icon_arrow_left)
+            toolbar.title = folderName
         }else{
-            toolbar.navigationIcon = ContextCompat.getDrawable(context, R.drawable.icon_arrow_left)
+            throw DriveUiElementsMissing("toolbar property is not initialized")
         }
-        toolbar.title = folderName
     }
     private fun updateTextPathView() {
         if (::toolbar.isInitialized){
@@ -227,6 +229,8 @@ class GoogleDriveFileManager(
                 }
             }
             if(useNavigationPath) this.toolbar.subtitle = formattedPath
+        }else{
+            throw DriveUiElementsMissing("toolbar property is not initialized")
         }
     }
 
@@ -240,11 +244,15 @@ class GoogleDriveFileManager(
     // public user input functions ////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     fun setRootFileName(rootFileName: String): GoogleDriveFileManager {
-        this.currentNamesPath[0] = rootFileName
-        if(useNavigationPath) this.toolbar.subtitle = buildString {
-            append("$rootFileName/")
+        if (::toolbar.isInitialized){
+            this.currentNamesPath[0] = rootFileName
+            if(useNavigationPath) this.toolbar.subtitle = buildString {
+                append("$rootFileName/")
+            }
+            this.toolbar.title = rootFileName
+        }else{
+            throw DriveUiElementsMissing("toolbar property is not initialized")
         }
-        this.toolbar.title = rootFileName
         return this@GoogleDriveFileManager
     }
     fun setRecyclerView(recyclerView: RecyclerView): GoogleDriveFileManager {
@@ -332,8 +340,12 @@ class GoogleDriveFileManager(
         return this@GoogleDriveFileManager
     }
     fun activateNavigationPath(useNavigationPath : Boolean): GoogleDriveFileManager {
-        this.useNavigationPath = useNavigationPath
-        return this@GoogleDriveFileManager
+        if (::toolbar.isInitialized){
+            this.useNavigationPath = useNavigationPath
+            return this@GoogleDriveFileManager
+        }else{
+            throw DriveUiElementsMissing("toolbar property is not initialized")
+        }
     }
 
     //______________________________________________________________________________________________
