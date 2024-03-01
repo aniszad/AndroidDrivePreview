@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.net.Uri
+import android.util.Log
 import android.view.Menu
 import android.widget.EditText
 import android.widget.ImageView
@@ -270,6 +271,7 @@ class GoogleDriveFileManager(
         this.swipeRefreshLayout=swipeRefreshLayout
         swipeRefreshLayout.setOnRefreshListener {
             swipeRefreshLayout.isRefreshing = true
+            Log.e("check", "$currentNamesPath, $currentIdsPath")
             getFiles(currentNamesPath.last(), currentIdsPath.last())
         }
         return this@GoogleDriveFileManager
@@ -329,6 +331,7 @@ class GoogleDriveFileManager(
 
     fun setRootFileId(rootFileId: String): GoogleDriveFileManager {
         this.rootFolderId = rootFileId
+        currentIdsPath.add(0, rootFileId)
         return this@GoogleDriveFileManager
     }
 
