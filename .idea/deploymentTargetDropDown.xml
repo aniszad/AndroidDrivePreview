@@ -15,20 +15,7 @@
         <State />
       </entry>
       <entry key="googledrivelibraryxml">
-        <State>
-          <targetSelectedWithDropDown>
-            <Target>
-              <type value="QUICK_BOOT_TARGET" />
-              <deviceKey>
-                <Key>
-                  <type value="VIRTUAL_DEVICE_PATH" />
-                  <value value="C:\Users\Anis\.android\avd\Pixel_4_1080x2280.avd" />
-                </Key>
-              </deviceKey>
-            </Target>
-          </targetSelectedWithDropDown>
-          <timeTargetWasSelectedWithDropDown value="2024-02-12T18:03:03.472503900Z" />
-        </State>
+        <State />
       </entry>
     </value>
   </component>

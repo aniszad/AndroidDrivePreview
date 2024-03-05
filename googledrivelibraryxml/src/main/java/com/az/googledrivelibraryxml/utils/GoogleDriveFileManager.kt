@@ -46,7 +46,7 @@ class GoogleDriveFileManager(
 
     private lateinit var adapter: GdFilesAdapter
     private var googleDriveApi: GoogleDriveApi =
-        GoogleDriveApi(gdCredentialsProvider = gdCredentialsProvider, appName = applicationName)
+        GoogleDriveApi(gdCredentialsProvider = gdCredentialsProvider,NotificationLauncher(context),appName = applicationName)
     private var clipboardManager: ClipboardManager
     private val currentIdsPath = mutableListOf<String>()
     private var currentNamesPath = mutableListOf("Drive Folder")
@@ -112,7 +112,7 @@ class GoogleDriveFileManager(
     ////////////////////////////////////////////////////////////////////////////////////////////////
     override fun onDownload(fileId: String, fileName : String) {
         lifecycleCoroutineScope.launch {
-            googleDriveApi.downloadFileFromDrive(context, fileId, fileName)
+            googleDriveApi.downloadFileFromDrive(fileId, fileName)
         }
     }
     override fun onShare(webViewLink: String) {
@@ -167,9 +167,14 @@ class GoogleDriveFileManager(
     // navigation functions ////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     fun navigateBack(){
-        currentIdsPath.remove(currentIdsPath.last())
-        currentNamesPath.remove(currentNamesPath.last())
-        getFiles(currentNamesPath.last(), currentIdsPath.last())
+        if (currentIdsPath.size != 1){
+            currentIdsPath.remove(currentIdsPath.last())
+            currentNamesPath.remove(currentNamesPath.last())
+            getFiles(currentNamesPath.last(), currentIdsPath.last())
+        }else{
+            Toast.makeText(context, "you are at root", Toast.LENGTH_SHORT).show()
+        }
+
     }
     private fun navigateForward(folderId: String, folderName : String){
         currentIdsPath.add(folderId)
@@ -375,6 +380,10 @@ class GoogleDriveFileManager(
                 return false
             }
         })
+        searchView.setOnCloseListener {
+            getFiles(currentNamesPath.last(), currentIdsPath.last())
+            false
+        }
     }
     private fun setSearchViewStyle(menu: Menu) {
         val searchItem = menu.findItem(R.id.btn_search)
@@ -389,6 +398,7 @@ class GoogleDriveFileManager(
         val searchButton = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_button)
         searchButton.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.black))
     }
+
 
     //______________________________________________________________________________________________
 

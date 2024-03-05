@@ -1,17 +1,11 @@
 package com.az.googledrivelibraryxml.api
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
-import android.graphics.Color
-import android.os.Build
 import android.os.Environment
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import com.az.googledrivelibraryxml.exceptions.DriveApiException
 import com.az.googledrivelibraryxml.managers.GdCredentialsProvider
 import com.az.googledrivelibraryxml.models.FileDriveItem
 import com.az.googledrivelibraryxml.models.ItemType
+import com.az.googledrivelibraryxml.utils.NotificationLauncher
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.JsonFactory
@@ -28,7 +22,9 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
 
-class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider, private val appName : String) {
+class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider,
+                     private val notificationLauncher: NotificationLauncher,
+                     private val appName : String) {
 
     private var driveService: Drive
     private var googleCredentials: GoogleCredentials
@@ -40,7 +36,7 @@ class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider, private val 
     }
     init {
         // getting the input stream of the credentials file
-        var credentialsInputStream = gdCredentialsProvider.getCredentials()
+        val credentialsInputStream = gdCredentialsProvider.getCredentials()
         credentialsInputStream.use { `in` ->
             googleCredentials = GoogleCredentials.fromStream(`in`).createScoped(
                 SCOPES
@@ -132,7 +128,6 @@ class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider, private val 
             null
         }
     }
-
     suspend fun deleteFolder(folderId: String) : Boolean{
         return try{
             withContext(Dispatchers.IO){
@@ -147,7 +142,6 @@ class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider, private val 
             false
         }
     }
-
     private fun fileOrDirectory(mimeType: String): ItemType {
         return if (mimeType == "application/vnd.google-apps.folder"){
             ItemType.FOLDER
@@ -177,71 +171,25 @@ class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider, private val 
         }
     }
     suspend fun downloadFileFromDrive(
-        context: Context,
         fileId: String,
         fileName: String,
     ) {
-        try {
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val notificationId = 321
-            val channelId = "download_channel"
-            val channelName = "Download Channel"
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
-                channel.description = "Channel for download notifications"
-                channel.enableLights(true)
-                channel.lightColor = Color.BLUE
-                notificationManager.createNotificationChannel(channel)
-            } else {
-                // For pre-Oreo versions, use deprecated NotificationCompat.Builder
-                val notificationBuilder = NotificationCompat.Builder(context, channelId)
-                    .setContentTitle("Download Notification")
-                    .setContentText("Download in progress...")
-                    .setLights(Color.BLUE, 1000, 1000) // Set LED light behavior (deprecated)
-                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                    .setAutoCancel(true)
-                notificationManager.notify(notificationId, notificationBuilder.build())
-            }
+        // initiating download
+        val httpTransport = GoogleNetHttpTransport.newTrustedTransport()
+        val driveService = Drive.Builder(httpTransport, JacksonFactory(), HttpCredentialsAdapter(googleCredentials))
+            .setApplicationName(appName)
+            .build()
+        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val filePath = java.io.File(downloadsDir, fileName)
 
-            // Notification for download start
-            val startNotification = NotificationCompat.Builder(context, channelId)
-                .setContentTitle("Downloading")
-                .setContentText(fileName)
-                .setSmallIcon(android.R.drawable.stat_sys_download)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setOngoing(true)
-                .build()
-
-            notificationManager.notify(notificationId, startNotification)
-
-            // initiating download
-            val httpTransport = GoogleNetHttpTransport.newTrustedTransport()
-            val driveService = Drive.Builder(httpTransport, JacksonFactory(), HttpCredentialsAdapter(googleCredentials))
-                .setApplicationName(appName)
-                .build()
-            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val filePath = java.io.File(downloadsDir, fileName)
-            withContext(Dispatchers.IO) {
-                val outputStream: OutputStream = FileOutputStream(filePath)
-                driveService.files().get(fileId).executeMediaAndDownloadTo(outputStream)
-                outputStream.close()
-            }
-            val completionNotification = NotificationCompat.Builder(context, channelId)
-                .setContentTitle("Download completed")
-                .setContentText(fileName)
-                .setSmallIcon(android.R.drawable.stat_sys_download_done)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setAutoCancel(true)
-                .build()
-            notificationManager.notify(notificationId, completionNotification)
-
-        } catch (e: IOException) {
-            Log.e("ERROR WHILE FILE CREATION", "An error occurred while fetching files: ${e.message}", e)
-        } catch (e: SecurityException) {
-            Log.e("ERROR WHILE FILE CREATION", "An error occurred while fetching files: ${e.message}", e)
-        } catch (e: Exception) {
-            Log.e("ERROR WHILE FILE CREATION", "An error occurred while fetching files: ${e.message}", e)
+        withContext(Dispatchers.IO) {
+            val outputStream: OutputStream = FileOutputStream(filePath)
+            notificationLauncher.startNotification(fileName, "Download started", true)
+            driveService.files().get(fileId).executeMediaAndDownloadTo(outputStream)
+            outputStream.close()
         }
+        notificationLauncher.updateNotificationCompleted(fileName, "Download completed", false)
+
     }
 
 

@@ -21,26 +21,25 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        //AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
 
         gdm = GoogleDriveFileManager(
             this@MainActivity,
-            lifecycleScope,
+            lifecycleScope, // lifecycle scope for launching coroutines
             Permissions.ADMIN,
             CredentialsProvider(),
             "test",
-
         )
-        gdm.setRefreshableRecyclerView(binding.swipeRefreshLayout, binding.recyclerView)
-            .setActionBar(binding.toolbar)
-            .setRootFileId("1ZEmBUIPWUXr_nae82N7qQHudIFwaxRe5")
-            .setRootFileName("Files Bank")
-            .activateNavigationPath(true)
-            .setFilePathCopyable(false)
-            .initialize()
+        gdm.setRecyclerView(binding.recyclerView) // set recycler view to display files
+            .setActionBar(binding.toolbar) // set toolbar to display file name, actions, path
+            .setRootFileId("1ZEmBUIPWUXr_nae82N7qQHudIFwaxRe5") // the id of the drive file to be displayed
+            .setRootFileName("Files Bank") // the root file name
+            .activateNavigationPath(false) // set to true to display the path of the current directory
+            .setFilePathCopyable(true) // set to true to allow the user to copy the path of the current directory
+            .initialize() // initialize the GoogleDriveFileManager
 
 
         val callback = object : OnBackPressedCallback(true) {
@@ -54,7 +53,7 @@ class MainActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this, callback)
 
 
-        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        /*  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
             startActivity(intent)
         } else {
@@ -66,6 +65,8 @@ class MainActivity : AppCompatActivity() {
         }
 
          */
+
+
 
 
 
