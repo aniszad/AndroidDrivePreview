@@ -6,34 +6,46 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.net.Uri
+import android.os.FileUtils
+import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
+import android.webkit.MimeTypeMap
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.MimeTypeFilter
+import androidx.core.net.toFile
+import androidx.core.net.toUri
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.az.googledrivelibraryxml.MainActivity
 import com.az.googledrivelibraryxml.R
 import com.az.googledrivelibraryxml.adapters.GdFilesAdapter
 import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.AccessFileListener
 import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.AccessFolderListener
 import com.az.googledrivelibraryxml.adapters.GdFilesAdapter.FileOptions
 import com.az.googledrivelibraryxml.api.GoogleDriveApi
+import com.az.googledrivelibraryxml.exceptions.DriveApiException
+import com.az.googledrivelibraryxml.exceptions.DriveManagerException
 import com.az.googledrivelibraryxml.exceptions.DriveRootException
 import com.az.googledrivelibraryxml.exceptions.DriveUiElementsMissing
+import com.az.googledrivelibraryxml.exceptions.MimeTypeException
+import com.az.googledrivelibraryxml.managers.FilePickerListener
 import com.az.googledrivelibraryxml.managers.GdCredentialsProvider
 import com.az.googledrivelibraryxml.models.FileDriveItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.internal.userAgent
+import org.eclipse.jetty.http.MimeTypes
+import java.io.File
+import java.net.URI
 
 
 class GoogleDriveFileManager(
@@ -46,7 +58,8 @@ class GoogleDriveFileManager(
 
     private lateinit var adapter: GdFilesAdapter
     private var googleDriveApi: GoogleDriveApi =
-        GoogleDriveApi(gdCredentialsProvider = gdCredentialsProvider,NotificationLauncher(context),appName = applicationName)
+        GoogleDriveApi(gdCredentialsProvider = gdCredentialsProvider,
+            NotificationLauncher(context),appName = applicationName)
     private var clipboardManager: ClipboardManager
     private val currentIdsPath = mutableListOf<String>()
     private var currentNamesPath = mutableListOf("Drive Folder")
@@ -57,6 +70,7 @@ class GoogleDriveFileManager(
     private lateinit var rootFolderId : String
     private var filePathCopyable = false
     private var useNavigationPath = false
+    private lateinit var filePickerListener:    FilePickerListener
 
 
     init {
@@ -322,11 +336,18 @@ class GoogleDriveFileManager(
                     // Handle menu item 2 click
                     true
                 }
+                R.id.btn_create_file ->{
+                    launchFilePicker()
+                    true
+                }
                 else -> false
             }
         }
         return this@GoogleDriveFileManager
     }
+
+
+
     fun initialize() {
         if (::rootFolderId.isInitialized){
             getFiles(currentNamesPath[0], rootFolderId)
@@ -353,8 +374,24 @@ class GoogleDriveFileManager(
         }
     }
 
-    //______________________________________________________________________________________________
+    fun setFilePickerListener(filePickerListener: FilePickerListener): GoogleDriveFileManager {
+        this.filePickerListener = filePickerListener
+        return this@GoogleDriveFileManager
+    }
 
+    fun uploadFileToDrive(file:File) {
+        lifecycleCoroutineScope.launch {
+            val mimeType = getMimeTypeFromExtension(file) ?: throw MimeTypeException("File With An Unsupported MimeType")
+            googleDriveApi.createFileOnDrive(
+                file,
+                currentIdsPath.last(),
+                mimeType
+            )
+            file.delete()
+        }
+    }
+
+    //______________________________________________________________________________________________
 
 
 
@@ -398,6 +435,22 @@ class GoogleDriveFileManager(
         val searchButton = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_button)
         searchButton.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.black))
     }
+    private fun launchFilePicker() {
+        if (::filePickerListener.isInitialized){
+            filePickerListener.launchFilePicker()
+        }else{
+            throw DriveManagerException("FilePickerListener interface is not implemented")
+        }
+    }
+
+    private fun getMimeTypeFromExtension(file: File): String? {
+        val extension = file.extension
+        if (extension.isEmpty()) {
+            return null // No extension found
+        }
+        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+    }
+
 
 
     //______________________________________________________________________________________________

@@ -2,11 +2,14 @@ package com.az.googledrivelibraryxml.api
 
 import android.os.Environment
 import android.util.Log
+import com.az.googledrivelibraryxml.exceptions.DriveDownloadException
+import com.az.googledrivelibraryxml.exceptions.DriveApiException
 import com.az.googledrivelibraryxml.managers.GdCredentialsProvider
 import com.az.googledrivelibraryxml.models.FileDriveItem
 import com.az.googledrivelibraryxml.models.ItemType
 import com.az.googledrivelibraryxml.utils.NotificationLauncher
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.http.FileContent
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.gson.GsonFactory
@@ -21,6 +24,7 @@ import kotlinx.coroutines.withContext
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
+
 
 class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider,
                      private val notificationLauncher: NotificationLauncher,
@@ -174,22 +178,46 @@ class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider,
         fileId: String,
         fileName: String,
     ) {
-        // initiating download
-        val httpTransport = GoogleNetHttpTransport.newTrustedTransport()
-        val driveService = Drive.Builder(httpTransport, JacksonFactory(), HttpCredentialsAdapter(googleCredentials))
-            .setApplicationName(appName)
-            .build()
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         val filePath = java.io.File(downloadsDir, fileName)
-
+        Log.e(" filepath", filePath.path)
         withContext(Dispatchers.IO) {
-            val outputStream: OutputStream = FileOutputStream(filePath)
-            notificationLauncher.startNotification(fileName, "Download started", true)
-            driveService.files().get(fileId).executeMediaAndDownloadTo(outputStream)
-            outputStream.close()
+            try {
+                val outputStream: OutputStream = FileOutputStream(filePath)
+                notificationLauncher.startNotification(fileName, "Download started", filePath.path,true)
+                driveService.files().get(fileId).executeMediaAndDownloadTo(outputStream)
+                outputStream.close()
+            }catch (e : Exception){
+                throw DriveDownloadException(e.stackTraceToString())
+            }
+
         }
         notificationLauncher.updateNotificationCompleted(fileName, "Download completed", false)
 
+    }
+
+
+
+
+    suspend fun createFileOnDrive(javaFile: java.io.File, parentId: String, mimeType: String) {
+        val fileMetadata = File()
+        fileMetadata.name = javaFile.name
+        fileMetadata.parents = listOf(parentId)
+
+        val mediaContent = FileContent(mimeType, javaFile)
+
+
+        try {
+            withContext(Dispatchers.IO) {
+                val fileCreation= driveService.files().create(fileMetadata, mediaContent)
+                    .setFields("id")
+                    .execute()
+                println("File ID: ${fileCreation.id}")
+            }
+
+        } catch (e: Exception) {
+            println("Error creating file: ${e}")
+        }
     }
 
 
