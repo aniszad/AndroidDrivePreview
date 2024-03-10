@@ -9,12 +9,12 @@
         />
     <item android:id="@+id/btn_create_folder"
         android:title=""
-        android:icon="@drawable/icon_create_folder"
+        android:icon="@drawable/icon_add"
         app:showAsAction="ifRoom"
         />
     <item android:id="@+id/btn_create_file"
         android:title=""
-        android:icon="@drawable/icon_add_file"
+        android:icon="@drawable/icon_attachment"
         app:showAsAction="ifRoom"
         />
 </menu>
