@@ -7,10 +7,21 @@ import com.az.googledrivelibraryxml.R
 import com.az.googledrivelibraryxml.models.ItemType
 import kotlin.math.pow
 
+/**
+ * File details adapter
+ *
+ * @constructor Create empty File details adapter
+ */
 class FileDetailsAdapter {
 
 
-    // return an icon as a drawable basing on the mimetype
+    /**
+     * Get icon from mime type
+     *
+     * @param context
+     * @param mimeType
+     * @return
+     */// return an icon as a drawable basing on the mimetype
     fun getIconFromMimeType(context: Context, mimeType: String): Drawable? {
         if (fileOrDirectory(mimeType) == ItemType.FOLDER) {
             return ContextCompat.getDrawable(context, R.drawable.icon_folder)
@@ -48,7 +59,12 @@ class FileDetailsAdapter {
         }
     }
 
-    //check if the file is a folder or a file
+    /**
+     * File or directory
+     *
+     * @param mimeType
+     * @return
+     *///check if the file is a folder or a file
     fun fileOrDirectory(mimeType: String): ItemType {
         return if (mimeType == "application/vnd.google-apps.folder"){
             ItemType.FOLDER
@@ -57,7 +73,12 @@ class FileDetailsAdapter {
         }
     }
 
-    // format the file size to a presentable text
+    /**
+     * Format size
+     *
+     * @param size
+     * @return
+     */// format the file size to a presentable text
     fun formatSize(size: Long): String {
         return when{
             size == 0L ->{""}

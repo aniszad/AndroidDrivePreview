@@ -12,6 +12,12 @@ import androidx.core.app.NotificationCompat
 import okhttp3.internal.notify
 import java.io.File
 
+/**
+ * Notification launcher
+ *
+ * @property context
+ * @constructor Create empty Notification launcher
+ */
 class NotificationLauncher(private val  context: Context) {
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     private val notificationId = 123
@@ -33,15 +39,17 @@ class NotificationLauncher(private val  context: Context) {
     }
 
 
-    fun startNotification(fileName: String,notificationTitle: String, filePath:String,ongoing: Boolean) {
+    /**
+     * Start notification
+     *
+     * @param fileName
+     * @param notificationTitle
+     * @param ongoing
+     */
+    fun startNotification(fileName: String, notificationTitle: String, ongoing: Boolean) {
         val notificationBuilder = createNotificationBuilder()
-        val file = File(filePath)
-        val intent = Intent(Intent.ACTION_VIEW)
-        intent.setDataAndType(Uri.fromFile(file), "*/*") // Replace "application/*" with appropriate mime type if known
-        val pendingIntent = PendingIntent.getActivity(context.applicationContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
-        notificationBuilder.setContentIntent(pendingIntent)
-            .setContentTitle(notificationTitle)
+        notificationBuilder.setContentTitle(notificationTitle)
             .setContentText(fileName)
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setOngoing(ongoing)
@@ -53,6 +61,13 @@ class NotificationLauncher(private val  context: Context) {
         notificationManager.notify(notificationId, notificationBuilder.build())
     }
 
+    /**
+     * Update notification completed
+     *
+     * @param fileName
+     * @param notificationTitle
+     * @param ongoing
+     */
     fun updateNotificationCompleted(fileName:String, notificationTitle: String, ongoing: Boolean) {
         notificationManager.notify(
             notificationId,

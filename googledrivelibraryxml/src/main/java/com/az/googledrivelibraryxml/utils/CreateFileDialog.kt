@@ -7,12 +7,25 @@ import android.view.View
 import android.widget.Toast
 import com.az.googledrivelibraryxml.databinding.CreateFolderDialogLayoutBinding
 
+/**
+ * Create file dialog
+ *
+ * @property context
+ * @constructor Create empty Create file dialog
+ */
 class CreateFileDialog(private val context: Context) {
     private lateinit var mCreateFolderDialog : Dialog
     private lateinit var binding : CreateFolderDialogLayoutBinding
 
     init {
     }
+
+    /**
+     * Show create folder dialog
+     *
+     * @param callback
+     * @receiver
+     */
     fun showCreateFolderDialog(callback : (folderName : String) -> Unit){
         mCreateFolderDialog = Dialog(context)
         binding = CreateFolderDialogLayoutBinding.inflate(LayoutInflater.from(context))
@@ -44,6 +57,10 @@ class CreateFileDialog(private val context: Context) {
         binding.btnCreateFolder.text  = ""
     }
 
+    /**
+     * Hide create folder dialog
+     *
+     */
     fun hideCreateFolderDialog(){
         this.mCreateFolderDialog.hide()
     }
