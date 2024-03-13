@@ -248,7 +248,7 @@ class GoogleDriveApi(gdCredentialsProvider : GdCredentialsProvider,
         withContext(Dispatchers.IO) {
             try {
                 val outputStream: OutputStream = FileOutputStream(filePath)
-                notificationLauncher.startNotification(fileName, "Download started", filePath.path,true)
+                notificationLauncher.startNotification(fileName, "Download started",true)
                 driveService.files().get(fileId).executeMediaAndDownloadTo(outputStream)
                 outputStream.close()
             }catch (e : Exception){

@@ -20,23 +20,21 @@ import java.io.File
  */
 class NotificationLauncher(private val  context: Context) {
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    private val notificationId = 123
     private val channelId = "download_channel"
     private val channelName = "Download Channel"
+    private var notificationIdMap  = mutableMapOf<String, Int>()
 
-    private fun createNotificationBuilder(): NotificationCompat.Builder {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationCompat.Builder(context, this.channelId)
-                .setAutoCancel(true)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+    private val notificationBuilder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        NotificationCompat.Builder(context, this.channelId)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
-        } else {
-            NotificationCompat.Builder(context, this.channelId)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setAutoCancel(true)
-        }
-
+    } else {
+        NotificationCompat.Builder(context, this.channelId)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
     }
+
 
 
     /**
@@ -47,8 +45,8 @@ class NotificationLauncher(private val  context: Context) {
      * @param ongoing
      */
     fun startNotification(fileName: String, notificationTitle: String, ongoing: Boolean) {
-        val notificationBuilder = createNotificationBuilder()
-
+        val notificationId = System.currentTimeMillis().toInt()
+        notificationIdMap[fileName] = notificationId
         notificationBuilder.setContentTitle(notificationTitle)
             .setContentText(fileName)
             .setSmallIcon(android.R.drawable.stat_sys_download)
@@ -70,11 +68,12 @@ class NotificationLauncher(private val  context: Context) {
      */
     fun updateNotificationCompleted(fileName:String, notificationTitle: String, ongoing: Boolean) {
         notificationManager.notify(
-            notificationId,
-            createNotificationBuilder()
+            notificationIdMap[fileName]!!,
+            notificationBuilder
                 .setContentTitle(notificationTitle)
                 .setContentText(fileName)
                 .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                .setProgress(0, 0, ongoing)
                 .setOngoing(ongoing)
                 .build()
         )
