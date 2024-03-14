@@ -17,6 +17,7 @@ gradle
 Copy code
 ```kotlin
 implementation 'com.example:googledrivefilemanager:1.0.0'
+```
 Make sure you have the necessary permissions and dependencies set up in your project.
 
 ## Usage
@@ -42,6 +43,7 @@ gdm.setRecyclerView(recyclerView) // Set RecyclerView to display files
    .setFilePathCopyable(true) // Enable copying of file paths
    .setFilePickerListener(this@MainActivity) // Set file picker listener
    .initialize() // Initialize Google Drive File Manager
+```
 For more detailed usage instructions and customization options, refer to the documentation.
 
 Contributing
