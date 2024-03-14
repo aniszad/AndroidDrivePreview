@@ -37,9 +37,9 @@ val gdm = GoogleDriveFileManager(
 // Configure Google Drive File Manager
 gdm.setRecyclerView(recyclerView) // Set RecyclerView to display files
    .setActionBar(toolbar) // Set ActionBar to display file name and actions
-   .setRootFileId("1ZEmBUIPWUXr_nae82N7qQHudIFwaxRe5") // Set root file ID
-   .setRootFileName("Files Bank") // Set root file name
-   .activateNavigationPath(false) // Disable navigation path display
+   .setRootFileId("RootFolderId") // Set root folder ID of the folder you want to display the content of, from your google drive
+   .setRootFolderName("titleOfRootFolder") // Set root file name
+   .activateNavigationPath(true) // Enable navigation path display
    .setFilePathCopyable(true) // Enable copying of file paths
    .setFilePickerListener(this@MainActivity) // Set file picker listener
    .initialize() // Initialize Google Drive File Manager
