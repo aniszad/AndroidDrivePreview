@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.fir.declarations.builder.buildScript
 
 buildscript {
     repositories {
