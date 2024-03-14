@@ -16,7 +16,7 @@ Add the library to your project's dependencies.
 gradle
 Copy code
 ```kotlin
-implementation 'com.example:googledrivefilemanager:1.0.0'
+implementation 'com.az.drivepreviewlibrary:1.0.0'
 ```
 Make sure you have the necessary permissions and dependencies set up in your project.
 
