@@ -1,4 +1,4 @@
-package com.az.drivepreviewlibrary.utils
+package com.az.drivepreviewlibrary.data
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -24,7 +24,6 @@ import com.az.drivepreviewlibrary.presentation.adapters.GdFilesAdapter
 import com.az.drivepreviewlibrary.presentation.adapters.GdFilesAdapter.AccessFileListener
 import com.az.drivepreviewlibrary.presentation.adapters.GdFilesAdapter.AccessFolderListener
 import com.az.drivepreviewlibrary.presentation.adapters.GdFilesAdapter.FileOptions
-import com.az.drivepreviewlibrary.api.GoogleDriveApi
 import com.az.drivepreviewlibrary.data.exceptions.DriveManagerException
 import com.az.drivepreviewlibrary.data.exceptions.DriveRootException
 import com.az.drivepreviewlibrary.data.exceptions.DriveUiElementsMissing
@@ -32,6 +31,10 @@ import com.az.drivepreviewlibrary.data.exceptions.MimeTypeException
 import com.az.drivepreviewlibrary.data.managers.FilePickerListener
 import com.az.drivepreviewlibrary.data.managers.GdCredentialsProvider
 import com.az.drivepreviewlibrary.data.models.FileDriveItem
+import com.az.drivepreviewlibrary.utils.CreateFileDialog
+import com.az.drivepreviewlibrary.utils.LoadingDialog
+import com.az.drivepreviewlibrary.utils.NotificationLauncher
+import com.az.drivepreviewlibrary.utils.Permissions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -408,7 +411,7 @@ class GoogleDriveFileManager(
      * @param rootFileName
      * @return
      */
-    fun setRootFileName(rootFileName: String): GoogleDriveFileManager {
+    fun setRootFolderName(rootFileName: String): GoogleDriveFileManager {
         if (::toolbar.isInitialized){
             this.currentNamesPath[0] = rootFileName
             if(useNavigationPath) this.toolbar.subtitle = buildString {
@@ -488,10 +491,10 @@ class GoogleDriveFileManager(
             Permissions.ADMIN -> {
                 toolbar.inflateMenu(R.menu.admin_toolbar_menu)
             }
-            Permissions.USER->{
+            Permissions.USER ->{
                 toolbar.inflateMenu(R.menu.strict_toolbar_menu)
             }
-            Permissions.STRICT->{
+            Permissions.STRICT ->{
                 toolbar.inflateMenu(R.menu.strict_toolbar_menu)
             }
         }
