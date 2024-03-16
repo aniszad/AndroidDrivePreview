@@ -1,3 +1,5 @@
+import com.android.build.gradle.LibraryExtension
+
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
@@ -17,16 +19,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
-    flavorDimensions.add("version")
-
-    productFlavors {
-        register("foo") {
-            dimension = flavorDimensions.find { it == "version" }
-            aarMetadata {
-                minCompileSdk = 24
-            }
-        }
-    }
 
     buildTypes {
         release {
@@ -36,6 +28,7 @@ android {
                 "proguard-rules.pro"
             )
         }
+
     }
 
     compileOptions {
@@ -60,34 +53,25 @@ android {
         resources.excludes.add("META-INF/ASL2.0")
         resources.excludes.add("META-INF/*.kotlin_module")
     }
-    testFixtures {
-        enable = true
-    }
-
-
-
 }
 
 
 dependencies {
-
-
-
-    implementation ("com.google.api-client:google-api-client-android:2.3.0")
-    implementation ("com.google.api-client:google-api-client-gson:2.3.0")
-    implementation ("com.fasterxml.jackson.core:jackson-core:2.17.0-rc1") // Optional for JSON parsing
+    implementation ("com.google.api-client:google-api-client-android:2.4.0")
+    implementation ("com.google.api-client:google-api-client-gson:2.4.0")
+    implementation ("com.fasterxml.jackson.core:jackson-core:2.17.0") // Optional for JSON parsing
 
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     testImplementation("junit:junit:4.13.2")
 
     // required if you want to use Mockito for unit tests
-    testImplementation ("org.mockito:mockito-core:3.12.4")
+    testImplementation ("org.mockito:mockito-core:5.11.0")
     // required if you want to use Mockito for Android tests
-    androidTestImplementation ("org.mockito:mockito-android:2.24.5")
+    androidTestImplementation ("org.mockito:mockito-android:5.11.0")
 
-    implementation("com.google.api-client:google-api-client-jackson2:1.31.0")
+    implementation("com.google.api-client:google-api-client-jackson2:2.4.0")
 
-    implementation ("com.squareup.okhttp3:okhttp:4.9.0")
+    implementation ("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
@@ -95,8 +79,8 @@ dependencies {
     // google drive :
     implementation ("com.google.android.gms:play-services-auth:21.0.0")
     implementation ("com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0")
-    implementation ("com.google.oauth-client:google-oauth-client-jetty:1.30.4")
-    implementation ("com.google.auth:google-auth-library-oauth2-http:1.3.0")
+    implementation ("com.google.oauth-client:google-oauth-client-jetty:1.35.0")
+    implementation ("com.google.auth:google-auth-library-oauth2-http:1.23.0")
 
 
     // SSP and SDP library
@@ -112,15 +96,3 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }
 
-
-publishing {
-    publications {
-        register<MavenPublication>("release") {
-            groupId = "com.aniszadri"
-            artifactId = "drive-android-preview"
-            version = "1.0.0-alpha05"
-
-            artifact("$buildDir/outputs/aar/${project.name}-release.aar")
-        }
-    }
-}
