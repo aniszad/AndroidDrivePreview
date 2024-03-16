@@ -17,13 +17,17 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
+    flavorDimensions.add("version")
+
     productFlavors {
         register("foo") {
+            dimension = flavorDimensions.find { it == "version" }
             aarMetadata {
                 minCompileSdk = 24
             }
         }
     }
+
     buildTypes {
         release {
             isMinifyEnabled = false
