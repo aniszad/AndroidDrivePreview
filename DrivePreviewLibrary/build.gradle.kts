@@ -114,7 +114,7 @@ publishing {
         register<MavenPublication>("release") {
             groupId = "com.aniszadri"
             artifactId = "drive-android-preview"
-            version = "1.0.0-alpha03"
+            version = "1.0.0-alpha04"
 
             artifact("$buildDir/outputs/aar/${project.name}-release.aar")
         }
