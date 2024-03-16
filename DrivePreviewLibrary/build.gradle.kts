@@ -1,7 +1,11 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
+    id ("maven-publish")
 }
+
+
+
 
 android {
     namespace = "com.az.drivepreviewlibrary"
@@ -13,7 +17,13 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
-
+    productFlavors {
+        register("foo") {
+            aarMetadata {
+                minCompileSdk = 24
+            }
+        }
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -23,6 +33,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -45,7 +56,14 @@ android {
         resources.excludes.add("META-INF/ASL2.0")
         resources.excludes.add("META-INF/*.kotlin_module")
     }
+    testFixtures {
+        enable = true
+    }
+
+
+
 }
+
 
 dependencies {
 
@@ -88,4 +106,17 @@ dependencies {
 
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+}
+
+
+publishing {
+    publications {
+        register<MavenPublication>("release") {
+            groupId = "com.aniszadri"
+            artifactId = "drive-android-preview"
+            version = "1.0.0-alpha03"
+
+            artifact("$buildDir/outputs/aar/${project.name}-release.aar")
+        }
+    }
 }
