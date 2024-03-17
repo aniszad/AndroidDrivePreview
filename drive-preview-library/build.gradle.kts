@@ -48,11 +48,9 @@ android {
         jvmTarget = "17"
     }
     publishing {
-        publishing {
-            singleVariant("release") {
-                withSourcesJar()
-                withJavadocJar()
-            }
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
         }
     }
     buildFeatures {
@@ -72,12 +70,14 @@ android {
     }
 }
 
+
+
 publishing {
     publications {
         register<MavenPublication>("release") {
             groupId = "com.aniszadri"
             artifactId = "drive-preview-library"
-            version = "1.0.0-alpha07"
+            version = "1.0.2"
         }
     }
 }
@@ -122,5 +122,6 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }
+
 
 
