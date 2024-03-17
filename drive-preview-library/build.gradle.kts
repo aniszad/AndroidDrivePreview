@@ -1,12 +1,11 @@
 import com.android.build.gradle.LibraryExtension
+import groovy.util.logging.Log
 
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id ("maven-publish")
 }
-
-
 
 
 android {
@@ -18,6 +17,16 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+    }
+
+    flavorDimensions += "version"
+
+    productFlavors {
+        register("foo") {
+            aarMetadata {
+                minCompileSdk = 24
+            }
+        }
     }
 
     buildTypes {
@@ -38,6 +47,14 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+    publishing {
+        publishing {
+            singleVariant("release") {
+                withSourcesJar()
+                withJavadocJar()
+            }
+        }
+    }
     buildFeatures {
         viewBinding = true
     }
@@ -52,6 +69,15 @@ android {
         resources.excludes.add("META-INF/notice.txt")
         resources.excludes.add("META-INF/ASL2.0")
         resources.excludes.add("META-INF/*.kotlin_module")
+    }
+}
+publishing {
+    publications {
+        register<MavenPublication>("release") {
+            groupId = "com.aniszadri"
+            artifactId = "drive-preview-library"
+            version = "1.0.0-alpha07"
+        }
     }
 }
 
@@ -95,4 +121,5 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }
+
 
