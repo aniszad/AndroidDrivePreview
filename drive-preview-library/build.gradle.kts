@@ -4,7 +4,7 @@ import groovy.util.logging.Log
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
-    id ("maven-publish")
+    id("maven-publish")
 }
 
 
@@ -76,8 +76,8 @@ publishing {
     publications {
         register<MavenPublication>("release") {
             groupId = "com.az"
-            artifactId = "drive-preview-library"
-            version = "1.0.2"
+            artifactId = "DriveAndroidPreviewLibrary "
+            version = "1.0.03"
         }
     }
 }
@@ -122,6 +122,8 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }
+
+
 
 
 
