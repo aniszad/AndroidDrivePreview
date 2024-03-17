@@ -75,7 +75,7 @@ android {
 publishing {
     publications {
         register<MavenPublication>("release") {
-            groupId = "com.aniszadri"
+            groupId = "com.az"
             artifactId = "drive-preview-library"
             version = "1.0.2"
         }
