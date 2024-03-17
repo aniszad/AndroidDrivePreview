@@ -71,6 +71,7 @@ android {
         resources.excludes.add("META-INF/*.kotlin_module")
     }
 }
+
 publishing {
     publications {
         register<MavenPublication>("release") {

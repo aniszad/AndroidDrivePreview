@@ -5,7 +5,7 @@ package com.az.drivepreviewlibrary.utils
  *
  * @constructor Create empty Permissions
  */
-enum class Permissions {
+public enum class Permissions {
     /**
      * Strict
      *

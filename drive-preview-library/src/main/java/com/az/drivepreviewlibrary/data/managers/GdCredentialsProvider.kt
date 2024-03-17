@@ -7,7 +7,7 @@ import java.io.InputStream
  *
  * @constructor Create empty Gd credentials provider
  */
-interface GdCredentialsProvider {
+public interface GdCredentialsProvider {
     /**
      * Get credentials
      *

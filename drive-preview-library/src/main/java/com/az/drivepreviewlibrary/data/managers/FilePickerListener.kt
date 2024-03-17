@@ -7,7 +7,7 @@ import java.io.File
  *
  * @constructor Create empty File picker listener
  */
-interface FilePickerListener {
+public interface FilePickerListener {
     /**
      * Launch file picker
      *

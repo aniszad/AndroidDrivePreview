@@ -52,7 +52,7 @@ import java.io.File
  * @param gdCredentialsProvider
  * @param applicationName
  */
-class GoogleDriveFileManager(
+public class GoogleDriveFileManager(
     private val context: Context,
     private val lifecycleCoroutineScope: LifecycleCoroutineScope,
     private val permissions : Permissions,
