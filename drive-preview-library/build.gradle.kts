@@ -71,16 +71,19 @@ android {
 }
 
 
-
-publishing {
-    publications {
-        register<MavenPublication>("release") {
-            groupId = "com.az"
-            artifactId = "GoogleDriveLibrary"
-            version = "1.0.04"
+afterEvaluate {
+    publishing {
+        publications {
+            register<MavenPublication>("release") {
+                groupId = "com.az"
+                artifactId = "GoogleDriveLibrary"
+                version = "1.0.05"
+                artifact("$buildDir/outputs/aar/DrivePreviewLibrary-foo-debug.aar")
+            }
         }
     }
 }
+
 
 
 dependencies {
