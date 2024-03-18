@@ -78,7 +78,7 @@ publishing {
         register<MavenPublication>("release") {
             groupId = "com.az"
             artifactId = "GoogleDriveLibrary"
-            version = "1.0.07"
+            version = "1.0.07-alpha"
         }
 
     }
