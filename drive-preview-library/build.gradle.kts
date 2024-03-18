@@ -71,15 +71,12 @@ android {
 }
 
 
-afterEvaluate {
-    publishing {
-        publications {
-            register<MavenPublication>("release") {
-                groupId = "com.az"
-                artifactId = "GoogleDriveLibrary"
-                version = "1.0.06"
-                artifact("$buildDir/outputs/aar/${project.name}-release.aar")
-            }
+publishing {
+    publications {
+        register<MavenPublication>("release") {
+            groupId = "com.az"
+            artifactId = "GoogleDriveLibrary"
+            version = "1.0.06"
         }
     }
 }
