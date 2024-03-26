@@ -72,3 +72,11 @@ onBackPressedDispatcher.addCallback(this, callback)
 - `navigateBack()`: Handles the back press event and navigates back to the previous directory or exits the app if at the root level.
 
 - `setDownloadPath()`: This function allows you to provide a path of a directory (you have to grant access to it) to the library so it downloads files into it. (see example in example app)
+
+
+## Important
+in order to be able to restrict downloading files when viewing files (in drive app or another app), sharing settings for the files need to be changed as follow:
+
+![Alt Text](images/edited1.png)
+![Alt Text](images/edited2.png)
+![Alt Text](images/edited3.png)
