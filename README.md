@@ -73,18 +73,22 @@ onBackPressedDispatcher.addCallback(this, callback)
 
 - `setDownloadPath()`: This function allows you to provide a path of a directory (you have to grant access to it) to the library so it downloads files into it. (see example in example app)
 
-
 ## Important
-in order to be able to restrict downloading files when viewing files (in drive app or another app), sharing settings for the files need to be changed as follow:
 
-![Alt Text](images/edited1.jpg)
-![Alt Text](images/edited2.jpg)
-![Alt Text](images/edited3.jpg)
+In order to be able to restrict downloading files when viewing files (in the Drive app or another app), the sharing settings for the files need to be changed as follows:
+
+<p float="left">
+ <img src="images/edited1.jpg" width="30%" />
+ <img src="images/edited2.jpg" width="30%" />
+ <img src="images/edited3.jpg" width="30%" />
+</p>
 
 ## Screenshots
 
-![Alt Text](images/screenshot_1.jpg)
-![Alt Text](images/screenshot_2.jpg)
-![Alt Text](images/screenshot_3.jpg)
-v![Alt Text](images/screenshot_4.jpg)
-![Alt Text](images/screenshot_5.jpg)
+<p float="left">
+ <img src="images/screenshot_1.jpg" width="200" />
+ <img src="images/screenshot_2.jpg" width="200" />
+ <img src="images/screenshot_3.jpg" width="200" />
+ <img src="images/screenshot_4.jpg" width="200" />
+ <img src="images/screenshot_5.jpg" width="200" />
+</p>
