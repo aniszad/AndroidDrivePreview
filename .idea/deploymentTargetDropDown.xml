@@ -2,31 +2,7 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="DrivePreviewLibrary.exampleapp">
-        <State />
-      </entry>
-      <entry key="GoogleDriveLibrary">
-        <State />
-      </entry>
       <entry key="app">
-        <State />
-      </entry>
-      <entry key="app.googledrivelibrary">
-        <State />
-      </entry>
-      <entry key="app.googledrivelibrarycompose">
-        <State />
-      </entry>
-      <entry key="exampleapp">
-        <State />
-      </entry>
-      <entry key="googledrivelibrary">
-        <State />
-      </entry>
-      <entry key="googledrivelibrarycompose">
-        <State />
-      </entry>
-      <entry key="googledrivelibraryxml">
         <State />
       </entry>
     </value>

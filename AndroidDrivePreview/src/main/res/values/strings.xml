@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">GoogleDriveLibraryXML</string>
+    <string name="title">Title</string>
+    <string name="share">Share</string>
+    <string name="download">Download</string>
+    <string name="delete">Delete</string>
+    <string name="create_folder">create folder</string>
+    <string name="create_folder_title">Create folder</string>
+    <string name="create">Create</string>
+    <string name="folder_name">folder name</string>
+    <string name="cancel">Cancel</string>
+    <string name="empty">Empty</string>
+    <string name="more_button">more_button</string>
+    <string name="upload_file">Upload file</string>
+    <string name="upload">Upload</string>
+</resources>

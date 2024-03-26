@@ -1,0 +1,104 @@
+plugins {
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.jetbrainsKotlinAndroid)
+    id('maven-publish')
+}
+
+
+android {
+    namespace 'com.az.androiddrivepreview'
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 29
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+    buildFeatures {
+        viewBinding= true
+    }
+    packagingOptions {
+        exclude 'META-INF/INDEX.LIST'
+        exclude 'META-INF/DEPENDENCIES'
+    }
+}
+
+dependencies {
+
+
+    implementation (libs.google.api.client.android)
+    implementation (libs.google.api.client.gson)
+    implementation (libs.jackson.core) // Optional for JSON parsing
+
+    implementation(libs.google.api.client.jackson2)
+
+    implementation(libs.androidx.swiperefreshlayout)
+
+    // SSP and SDP library
+    implementation (libs.ssp.android)
+    implementation (libs.sdp.android)
+
+    implementation (libs.okhttp)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.constraintlayout)
+
+    // google drive :
+    implementation (libs.play.services.auth)
+    implementation (libs.google.api.services.drive)
+    implementation (libs.google.oauth.client.jetty)
+    implementation (libs.google.auth.library.oauth2.http)
+
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.material
+    implementation libs.androidx.swiperefreshlayout
+    testImplementation libs.junit
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.espresso.core
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.github.aniszad'
+            artifactId = 'AndroidDrivePreview'
+            version = '1.0.0-alpha05'
+            afterEvaluate {
+                from components.release
+            }
+            pom {
+                name = 'AndroidDrivePreview'
+                description = 'Description of your library'
+                url = 'https://github.com/aniszad/AndroidDrivePreview'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+            }
+        }
+    }
+}
