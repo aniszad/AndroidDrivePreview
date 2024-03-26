@@ -83,8 +83,8 @@ in order to be able to restrict downloading files when viewing files (in drive a
 
 ## Screenshots
 
-![Alt Text](images/screenshot (1).jpg)
-![Alt Text](images/screenshot (2).jpg)
-![Alt Text](images/screenshot (3).jpg)
-v![Alt Text](images/screenshot (4).jpg)
-![Alt Text](images/screenshot (5).jpg)
+![Alt Text](images/screenshot(1).jpg)
+![Alt Text](images/screenshot(2).jpg)
+![Alt Text](images/screenshot(3).jpg)
+v![Alt Text](images/screenshot(4).jpg)
+![Alt Text](images/screenshot(5).jpg)
