@@ -77,6 +77,6 @@ onBackPressedDispatcher.addCallback(this, callback)
 ## Important
 in order to be able to restrict downloading files when viewing files (in drive app or another app), sharing settings for the files need to be changed as follow:
 
-![Alt Text](images/edited1.png)
-![Alt Text](images/edited2.png)
-![Alt Text](images/edited3.png)
+![Alt Text](images/edited1.jpg)
+![Alt Text](images/edited2.jpg)
+![Alt Text](images/edited3.jpg)
