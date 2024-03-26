@@ -71,4 +71,4 @@ onBackPressedDispatcher.addCallback(this, callback)
 
 - `navigateBack()`: Handles the back press event and navigates back to the previous directory or exits the app if at the root level.
 
-- `setDownloadPath()`: Sets the download path for downloaded files.
+- `setDownloadPath()`: This function allows you to provide a path of a directory (you have to grant access to it) to the library so it downloads files into it. (see example in example app)
