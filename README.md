@@ -1,6 +1,16 @@
+[![](https://jitpack.io/v/aniszad/AndroidDrivePreview.svg)](https://jitpack.io/#aniszad/AndroidDrivePreview)
+
 # AndroidDrivePreview
 
 AndroidDrivePreview is a library for Android that allows you to seamlessly integrate Google Drive into your application. It provides a user-friendly interface for browsing, managing, and interacting with files stored on Google Drive. This library simplifies the process of working with Google Drive APIs and offers a range of features to enhance the user experience.
+
+<p float="left">
+ <img src="images/screenshot_1.jpg" width="200" />
+ <img src="images/screenshot_2.jpg" width="200" />
+ <img src="images/screenshot_3.jpg" width="200" />
+ <img src="images/screenshot_4.jpg" width="200" />
+ <img src="images/screenshot_5.jpg" width="200" />
+</p>
 
 ## Installation
 
@@ -83,12 +93,5 @@ In order to be able to restrict downloading files when viewing files (in the Dri
  <img src="images/edited3.jpg" width="30%" />
 </p>
 
-## Screenshots
 
-<p float="left">
- <img src="images/screenshot_1.jpg" width="200" />
- <img src="images/screenshot_2.jpg" width="200" />
- <img src="images/screenshot_3.jpg" width="200" />
- <img src="images/screenshot_4.jpg" width="200" />
- <img src="images/screenshot_5.jpg" width="200" />
-</p>
+
