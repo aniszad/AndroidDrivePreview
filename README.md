@@ -8,11 +8,13 @@ To integrate the Google Drive File Manager library into your Android project, yo
 1.Add the following lines to your root `settings.gradle` file:
 
 ```gradle
-allprojects {
-   repositories {
-       ...
-       maven { url 'https://jitpack.io' }
-   }
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
 }
 ```
 2.Add the following lines to your root `build.gradle` file:
