@@ -28,6 +28,7 @@ dependencyResolutionManagement {
 }
 ```
 2.Add the following lines to your root `build.gradle` file:
+latest version for now : 1.0.0
 ```gradle
 dependencies {
     implementation 'com.github.aniszad:AndroidDrivePreview:latest-version'
