@@ -51,16 +51,6 @@ val callback = object : OnBackPressedCallback(true) {
     }
 }
 onBackPressedDispatcher.addCallback(this, callback)
-
-/**
- * setupDownloadFolder
- * This function is used to set up the download folder for the app,
- * including creating the folder and granting permission to it, and then
- * calling gdm.setDownloadPath() to set the download path.
- * Not implementing means using the default behavior, which is downloading into:
- * "context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.path"
- */
-//setupDownloadFolder()
 ```
 
 ### Public Functions
