@@ -103,6 +103,7 @@ class MainActivity : AppCompatActivity() {
             .setRootFolderName("Files Bank") // the root file name
             .activateNavigationPath(false) // set to true to display the path of the current directory
             .setFilePathCopyable(true) // set to true to allow the user to copy the path of the current directory
+            .setThemeMode(true)
             .initialize() // initialize the GoogleDriveFileManager
 
         // Handle back press

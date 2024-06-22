@@ -38,7 +38,6 @@ import com.az.androiddrivepreview.data.managers.FilePickerListener
 import com.az.androiddrivepreview.data.managers.GdCredentialsProvider
 import com.az.androiddrivepreview.data.models.FileDriveItem
 import com.az.androiddrivepreview.utils.Dialogs
-import com.az.androiddrivepreview.utils.LoadingDialog
 import com.az.androiddrivepreview.utils.NotificationLauncher
 import com.az.androiddrivepreview.utils.Permissions
 import kotlinx.coroutines.Dispatchers
@@ -643,6 +642,30 @@ class GoogleDriveFileManager(
         showFileUploadDialog(File(destinationPath))
     }
 
+
+    fun setThemeMode(darkMode : Boolean): GoogleDriveFileManager {
+        adapter.setDarkMode(darkMode)
+        toolbar.setTitleTextColor(ContextCompat.getColor(context, R.color.white))
+        val searchItem = toolbar.menu.findItem(R.id.btn_search)
+        val btnCreateFolder = toolbar.menu.findItem(R.id.btn_create_folder)
+        val btnContribute = toolbar.menu.findItem(R.id.btn_create_file)
+
+        val searchView = searchItem.actionView as SearchView
+
+        searchView.queryHint = "search"
+
+        val editText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
+        editText.setTextColor(ContextCompat.getColor(context, R.color.black))
+        editText.setHintTextColor(ContextCompat.getColor(context, android.R.color.darker_gray))
+
+        val closeButton = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_close_btn)
+        val searchButton = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_button)
+        closeButton.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.white))
+        searchButton.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.white))
+        btnContribute.iconTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.white))
+        btnCreateFolder.iconTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.white))
+        return this@GoogleDriveFileManager
+    }
     /**
      * Upload file to drive
      *

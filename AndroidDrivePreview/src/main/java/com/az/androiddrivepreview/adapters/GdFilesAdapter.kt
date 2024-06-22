@@ -7,15 +7,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.az.androiddrivepreview.R
+import com.az.androiddrivepreview.data.models.FileDriveItem
+import com.az.androiddrivepreview.data.models.ItemType
 import com.az.androiddrivepreview.databinding.EmptyLayoutItemBinding
 import com.az.androiddrivepreview.databinding.GoogleDriveItemLayoutBinding
 import com.az.androiddrivepreview.databinding.LoadingBarLayoutBinding
 import com.az.androiddrivepreview.databinding.NoDataLayoutItemBinding
-
-import com.az.androiddrivepreview.data.models.FileDriveItem
-import com.az.androiddrivepreview.data.models.ItemType
 import com.az.androiddrivepreview.utils.CustomDateFormatter
 import com.az.androiddrivepreview.utils.FileDetailsAdapter
 import com.az.androiddrivepreview.utils.Permissions
@@ -33,6 +33,7 @@ class GdFilesAdapter(
     private var isLoading = true
     private var customDateFormatter = CustomDateFormatter()
     private val fileDetailsAdapter = FileDetailsAdapter()
+    private var darkMode = false
 
     inner class FileViewHolder(binding: GoogleDriveItemLayoutBinding) : RecyclerView.ViewHolder(binding.root) {
         val iconFileType = binding.imFileType
@@ -96,9 +97,9 @@ class GdFilesAdapter(
             }
             LOADING_VIEW_TYPE ->{
                 LoadingBarViewHolder(LoadingBarLayoutBinding.inflate(
-                LayoutInflater.from(parent.context),
-                parent,
-                false
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
                 )
                 )
             }
@@ -127,6 +128,13 @@ class GdFilesAdapter(
 
             with(holder) {
                 tvFileName.text = currentItem.fileName
+                if (darkMode) {
+                    tvFileName.setTextColor(ContextCompat.getColor(context, R.color.white))
+                    tvCreationDate.setTextColor(ContextCompat.getColor(context, R.color.white))
+                    tvFileSize.setTextColor(ContextCompat.getColor(context, R.color.white))
+                    btnMore.imageTintList = ContextCompat.getColorStateList(context, R.color.white)
+                    btnCopy.imageTintList = ContextCompat.getColorStateList(context, R.color.white)
+                }
                 tvCreationDate.text = customDateFormatter.formatDate(currentItem.createdDate)
                 iconFileType.setImageDrawable(
                     fileDetailsAdapter.getIconFromMimeType(context, currentItem.mimeType)
@@ -199,6 +207,10 @@ class GdFilesAdapter(
     fun updateFilePathCopyable(filePathCopyable : Boolean){
         this.filePathCopyable = filePathCopyable
         notifyDataSetChanged()
+    }
+
+    fun setDarkMode(darkMode : Boolean){
+        this@GdFilesAdapter.darkMode= darkMode
     }
 
     companion object{
