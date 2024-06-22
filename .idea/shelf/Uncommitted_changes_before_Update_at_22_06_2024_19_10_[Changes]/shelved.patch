@@ -1,0 +1,52 @@
+Index: README.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+># AndroidDrivePreview\r\n\r\nAndroidDrivePreview is a library for Android that allows you to seamlessly integrate Google Drive into your application. It provides a user-friendly interface for browsing, managing, and interacting with files stored on Google Drive. This library simplifies the process of working with Google Drive APIs and offers a range of features to enhance the user experience.\r\n\r\n## Installation\r\n\r\nTo integrate the Google Drive File Manager library into your Android project, you can use JitPack.\r\n1.Add the following lines to your root `settings.gradle` file:\r\n\r\n```gradle\r\ndependencyResolutionManagement {\r\n    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)\r\n    repositories {\r\n        google()\r\n        mavenCentral()\r\n        maven { url 'https://jitpack.io' }\r\n    }\r\n}\r\n```\r\n2.Add the following lines to your root `build.gradle` file:\r\n```gradle\r\ndependencies {\r\n    implementation 'com.github.aniszad:AndroidDrivePreview:latest-version'\r\n}\r\n```\r\n\r\n## Utilisation\r\n\r\n### Example\r\n```kotlin\r\nval gdm = GoogleDriveFileManager(\r\n    this@MainActivity,\r\n    lifecycleScope, // Lifecycle scope for launching coroutines\r\n    Permissions.ADMIN, // Specify the permission level\r\n    CredentialsProvider() // Provide credentials for authentication\r\n)\r\n\r\n// Set the recycler view, toolbar, root file ID, root folder name, and file picker listener\r\ngdm.setRecyclerView(binding.recyclerView) // Set the recycler view to display files\r\n    .setActionBar(binding.toolbar) // Set the toolbar to display file name, actions, path\r\n    .setRootFileId(\"1ZEmBUIPWUXr_nae82N7qQHudIFwaxRe5\") // Set the ID of the root Drive file to be displayed\r\n    .setRootFolderName(\"Files Bank\") // Set the name of the root folder\r\n    .activateNavigationPath(false) // Set to true to display the path of the current directory\r\n    .setFilePathCopyable(true) // Set to true to allow the user to copy the path of the current directory\r\n    .initialize() // Initialize the GoogleDriveFileManager\r\n\r\n// Handle back press\r\nval callback = object : OnBackPressedCallback(true) {\r\n    override fun handleOnBackPressed() {\r\n        gdm.navigateBack { this@MainActivity.finish() }\r\n    }\r\n}\r\nonBackPressedDispatcher.addCallback(this, callback)\r\n```\r\n\r\n### Public Functions\r\n\r\n- `setRecyclerView()`: Sets the RecyclerView that will display the files and folders from Google Drive.\r\n\r\n- `setActionBar()`: Sets the toolbar or action bar that will display the current file name, available actions, and navigation path.\r\n\r\n- `setRootFileId()`: Sets the ID of the root Drive file or folder to be displayed initially.\r\n\r\n- `setRootFolderName()`: Sets the name of the root folder to be displayed.\r\n\r\n- `activateNavigationPath()`: Enables or disables the display of the navigation path in the action bar.\r\n\r\n- `setFilePathCopyable()`: Allows or disables the ability for users to copy the path of the current directory.\r\n\r\n- `initialize()`: Initializes the Google Drive File Manager after all configurations have been set.\r\n\r\n- `navigateBack()`: Handles the back press event and navigates back to the previous directory or exits the app if at the root level.\r\n\r\n- `setDownloadPath()`: This function allows you to provide a path of a directory (you have to grant access to it) to the library so it downloads files into it. (see example in example app)\r\n\r\n## Important\r\n\r\nIn order to be able to restrict downloading files when viewing files (in the Drive app or another app), the sharing settings for the files need to be changed as follows:\r\n\r\n<p float=\"left\">\r\n <img src=\"images/edited1.jpg\" width=\"30%\" />\r\n <img src=\"images/edited2.jpg\" width=\"30%\" />\r\n <img src=\"images/edited3.jpg\" width=\"30%\" />\r\n</p>\r\n\r\n## Screenshots\r\n\r\n<p float=\"left\">\r\n <img src=\"images/screenshot_1.jpg\" width=\"200\" />\r\n <img src=\"images/screenshot_2.jpg\" width=\"200\" />\r\n <img src=\"images/screenshot_3.jpg\" width=\"200\" />\r\n <img src=\"images/screenshot_4.jpg\" width=\"200\" />\r\n <img src=\"images/screenshot_5.jpg\" width=\"200\" />\r\n</p>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/README.md b/README.md
+--- a/README.md	(revision c238c38b08ce16a316a8bcde5caf458fb71ceaee)
++++ b/README.md	(date 1719079685900)
+@@ -1,7 +1,17 @@
++[![](https://jitpack.io/v/aniszad/AndroidDrivePreview.svg)](https://jitpack.io/#aniszad/AndroidDrivePreview)
++
+ # AndroidDrivePreview
+ 
+ AndroidDrivePreview is a library for Android that allows you to seamlessly integrate Google Drive into your application. It provides a user-friendly interface for browsing, managing, and interacting with files stored on Google Drive. This library simplifies the process of working with Google Drive APIs and offers a range of features to enhance the user experience.
+ 
++<p float="left">
++ <img src="images/screenshot_1.jpg" width="200" />
++ <img src="images/screenshot_2.jpg" width="200" />
++ <img src="images/screenshot_3.jpg" width="200" />
++ <img src="images/screenshot_4.jpg" width="200" />
++ <img src="images/screenshot_5.jpg" width="200" />
++</p>
++
+ ## Installation
+ 
+ To integrate the Google Drive File Manager library into your Android project, you can use JitPack.
+@@ -20,7 +30,7 @@
+ 2.Add the following lines to your root `build.gradle` file:
+ ```gradle
+ dependencies {
+-    implementation 'com.github.aniszad:AndroidDrivePreview:latest-version'
++    implementation 'com.github.aniszad:AndroidDrivePreview:latest-version' // latest version for now : 1.0.0
+ }
+ ```
+ 
+@@ -83,12 +93,5 @@
+  <img src="images/edited3.jpg" width="30%" />
+ </p>
+ 
+-## Screenshots
+-
+-<p float="left">
+- <img src="images/screenshot_1.jpg" width="200" />
+- <img src="images/screenshot_2.jpg" width="200" />
+- <img src="images/screenshot_3.jpg" width="200" />
+- <img src="images/screenshot_4.jpg" width="200" />
+- <img src="images/screenshot_5.jpg" width="200" />
+-</p>
++
++
