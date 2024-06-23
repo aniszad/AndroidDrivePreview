@@ -47,13 +47,16 @@ android {
 dependencies {
 
 
-    implementation (libs.google.api.client.android)
+    implementation (libs.google.api.client.android) {
+        exclude group: "io.grpc", module: "grpc-android"
+    }
     implementation (libs.google.api.client.gson)
     implementation (libs.jackson.core) // Optional for JSON parsing
 
     implementation(libs.google.api.client.jackson2)
 
     implementation(libs.androidx.swiperefreshlayout)
+
 
     // SSP and SDP library
     implementation (libs.ssp.android)
