@@ -6,6 +6,10 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.BlendMode
+import android.graphics.BlendModeColorFilter
+import android.graphics.ColorFilter
+import android.graphics.PorterDuff
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
@@ -646,10 +650,10 @@ class GoogleDriveFileManager(
     fun setThemeMode(darkMode : Boolean): GoogleDriveFileManager {
         adapter.setDarkMode(darkMode)
         toolbar.setTitleTextColor(ContextCompat.getColor(context, R.color.white))
+
         val searchItem = toolbar.menu.findItem(R.id.btn_search)
         val btnCreateFolder = toolbar.menu.findItem(R.id.btn_create_folder)
         val btnContribute = toolbar.menu.findItem(R.id.btn_create_file)
-
         val searchView = searchItem.actionView as SearchView
 
         searchView.queryHint = "search"
