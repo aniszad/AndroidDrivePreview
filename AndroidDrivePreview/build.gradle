@@ -47,9 +47,8 @@ android {
 dependencies {
 
 
-    implementation (libs.google.api.client.android) {
-        exclude group: "io.grpc", module: "grpc-android"
-    }
+    implementation (libs.google.api.client.android)
+
     implementation (libs.google.api.client.gson)
     implementation (libs.jackson.core) // Optional for JSON parsing
 
@@ -80,6 +79,12 @@ dependencies {
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
+
+    configurations.configureEach {
+        resolutionStrategy {
+            force 'io.grpc:grpc-android:1.41.0'
+        }
+    }
 }
 
 publishing {
@@ -87,7 +92,7 @@ publishing {
         release(MavenPublication) {
             groupId = 'com.github.aniszad'
             artifactId = 'AndroidDrivePreview'
-            version = '1.0.2'
+            version = '1.0.4'
             afterEvaluate {
                 from components.release
             }
