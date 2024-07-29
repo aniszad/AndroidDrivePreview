@@ -2,6 +2,8 @@ package com.az.androiddrivepreview.adapters
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
+import android.os.Environment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -44,8 +46,12 @@ class GdFilesAdapter(
         val tvCreationDate = binding.tvCreationDate
         val root = binding.root
     }
-    inner class LoadingBarViewHolder(binding : LoadingBarLayoutBinding) : RecyclerView.ViewHolder(binding.root)
-    inner class NoDataViewHolder(binding : NoDataLayoutItemBinding) : RecyclerView.ViewHolder(binding.root)
+    inner class LoadingBarViewHolder(binding : LoadingBarLayoutBinding) : RecyclerView.ViewHolder(binding.root){
+        val loadingBar = binding.loadingBar
+    }
+    inner class NoDataViewHolder(binding : NoDataLayoutItemBinding) : RecyclerView.ViewHolder(binding.root){
+        val tvNoData = binding.tvNoData
+    }
     inner class EmptyElementViewHolder(binding : EmptyLayoutItemBinding) : RecyclerView.ViewHolder(binding.root)
 
     interface AccessFolderListener{
@@ -154,6 +160,13 @@ class GdFilesAdapter(
                     }
                 }
             }
+        }
+        if (holder is NoDataViewHolder){
+            holder.tvNoData.setTextColor(if(darkMode) ContextCompat.getColor(context, R.color.white) else ContextCompat.getColor(context, R.color.black))
+        }
+        if (holder is LoadingBarViewHolder){
+            holder.loadingBar.setIndicatorColor(if(darkMode) Color.WHITE
+                else Color.BLACK)
         }
     }
 

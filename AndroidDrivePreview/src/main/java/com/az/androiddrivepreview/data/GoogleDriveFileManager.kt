@@ -6,10 +6,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
-import android.graphics.BlendMode
-import android.graphics.BlendModeColorFilter
-import android.graphics.ColorFilter
-import android.graphics.PorterDuff
+import android.graphics.Color
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
@@ -67,6 +64,7 @@ class GoogleDriveFileManager(
     private val permissions : Permissions,
     gdCredentialsProvider: GdCredentialsProvider,
 ) : FileOptions, AccessFileListener, AccessFolderListener {
+    private var darkMode: Boolean = false
     private val filePickerLauncher = (context as AppCompatActivity).registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -196,7 +194,7 @@ class GoogleDriveFileManager(
      */
     override fun onDownload(fileId: String, fileName : String) {
         lifecycleCoroutineScope.launch {
-            googleDriveApi.downloadFileFromDrive(fileId, fileName)
+            googleDriveApi.downloadFileFromDrive(fileId, fileName, currentNamesPath)
         }
     }
 
@@ -392,6 +390,9 @@ class GoogleDriveFileManager(
             toolbar.navigationIcon =  if (folderId == this.rootFolderId) null else
                 ContextCompat.getDrawable(context, R.drawable.icon_arrow_left)
             toolbar.title = folderName
+
+            val iconTintColor = if (darkMode) Color.WHITE else Color.BLACK
+            toolbar.navigationIcon?.setTintList(ColorStateList.valueOf(iconTintColor))
         }else{
             throw DriveUiElementsMissing("toolbar property is not initialized")
         }
@@ -647,9 +648,16 @@ class GoogleDriveFileManager(
     }
 
 
-    fun setThemeMode(darkMode : Boolean): GoogleDriveFileManager {
+    fun setThemeMode(darkMode: Boolean): GoogleDriveFileManager {
+        this.darkMode = darkMode
         adapter.setDarkMode(darkMode)
-        toolbar.setTitleTextColor(ContextCompat.getColor(context, R.color.white))
+
+        val textColor = if (darkMode) Color.WHITE else Color.BLACK
+        val iconTintColor = if (darkMode) Color.WHITE else Color.BLACK
+        val hintColor = if (darkMode) Color.WHITE else Color.DKGRAY
+
+        toolbar.setTitleTextColor(textColor)
+        toolbar.navigationIcon?.setTintList(ColorStateList.valueOf(iconTintColor))
 
         val searchItem = toolbar.menu.findItem(R.id.btn_search)
         val btnCreateFolder = toolbar.menu.findItem(R.id.btn_create_folder)
@@ -659,15 +667,16 @@ class GoogleDriveFileManager(
         searchView.queryHint = "search"
 
         val editText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
-        editText.setTextColor(ContextCompat.getColor(context, R.color.black))
-        editText.setHintTextColor(ContextCompat.getColor(context, android.R.color.darker_gray))
+        editText.setTextColor(textColor)
+        editText.setHintTextColor(hintColor)
 
         val closeButton = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_close_btn)
         val searchButton = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_button)
-        closeButton.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.white))
-        searchButton.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.white))
-        btnContribute.iconTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.white))
-        btnCreateFolder.iconTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.white))
+        closeButton.imageTintList = ColorStateList.valueOf(iconTintColor)
+        searchButton.imageTintList = ColorStateList.valueOf(iconTintColor)
+        btnContribute.iconTintList = ColorStateList.valueOf(iconTintColor)
+        btnCreateFolder.iconTintList = ColorStateList.valueOf(iconTintColor)
+
         return this@GoogleDriveFileManager
     }
     /**
@@ -690,7 +699,6 @@ class GoogleDriveFileManager(
                     mCustomDialogs.hideUploadFileDialog("${file.name} uploaded successfully")
                 }
             }
-
         } catch (e: Exception) {
             Toast.makeText(context, "Failed to upload file", Toast.LENGTH_SHORT).show()
             Log.e("FileUpload", e.stackTraceToString())

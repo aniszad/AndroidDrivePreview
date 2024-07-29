@@ -237,21 +237,31 @@ class GoogleDriveApi(private val context : Context,
      */
     suspend fun downloadFileFromDrive(
         fileId: String,
-        fileName: String
+        fileName: String,
+        currentNamesPath: MutableList<String>
     ) {
-        val filePath = java.io.File(downloadsDir, fileName)
-        Log.e("filepath", filePath.absolutePath+"///"+context.filesDir.absolutePath)
         withContext(Dispatchers.IO) {
             try {
+                // Construct the full path including subdirectories
+                val fullPath = currentNamesPath.fold(downloadsDir?.let { java.io.File(it) }) { acc, folder ->
+                    java.io.File(acc, folder).also { it.mkdirs() }
+                }
+                val filePath = java.io.File(fullPath, fileName)
+
+                Log.e("filepath", filePath.absolutePath + "///" + context.filesDir.absolutePath)
+
+                notificationLauncher.startNotification(fileName, "Download started", true)
+
                 val outputStream: OutputStream = FileOutputStream(filePath)
-                notificationLauncher.startNotification(fileName, "Download started",true)
                 driveService.files().get(fileId).executeMediaAndDownloadTo(outputStream)
                 outputStream.close()
-            }catch (e : Exception){
+
+                notificationLauncher.updateNotificationCompleted(fileName, "Download completed", false)
+            } catch (e: Exception) {
+                notificationLauncher.updateNotificationCompleted(fileName, "Download failed", false)
                 throw DriveDownloadException(e.stackTraceToString())
             }
         }
-        notificationLauncher.updateNotificationCompleted(fileName, "Download completed", false)
     }
 
 
