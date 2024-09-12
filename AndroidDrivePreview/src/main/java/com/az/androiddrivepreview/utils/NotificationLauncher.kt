@@ -2,7 +2,10 @@ package com.az.androiddrivepreview.utils
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 
@@ -30,28 +33,41 @@ class NotificationLauncher(private val  context: Context) {
     }
 
 
-
     /**
      * Start notification
      *
      * @param fileName
      * @param notificationTitle
      * @param ongoing
+     * @param fileUri
+     * @param mimeType
      */
-    fun startNotification(fileName: String, notificationTitle: String, ongoing: Boolean) {
+    fun startNotification(fileName: String, notificationTitle: String, ongoing: Boolean, fileUri: Uri?, mimeType: String) {
         val notificationId = System.currentTimeMillis().toInt()
         notificationIdMap[fileName] = notificationId
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(fileUri, mimeType)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
         notificationBuilder.setContentTitle(notificationTitle)
             .setContentText(fileName)
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setOngoing(ongoing)
             .setProgress(0, 0, ongoing)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
-            notificationManager.createNotificationChannel(channel)
-        }
+            .setContentIntent(pendingIntent)
+        val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
+        notificationManager.createNotificationChannel(channel)
+
+        // Notify the user
         notificationManager.notify(notificationId, notificationBuilder.build())
     }
+
 
     /**
      * Update notification completed
@@ -62,7 +78,7 @@ class NotificationLauncher(private val  context: Context) {
      */
     fun updateNotificationCompleted(fileName:String, notificationTitle: String, ongoing: Boolean) {
         notificationManager.notify(
-            notificationIdMap[fileName]!!,
+            notificationIdMap[fileName] ?: 231,
             notificationBuilder
                 .setContentTitle(notificationTitle)
                 .setContentText(fileName)

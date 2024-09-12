@@ -5,6 +5,8 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Toast
+import androidx.core.content.ContextCompat
+import com.az.androiddrivepreview.R
 import com.az.androiddrivepreview.databinding.CreateFolderDialogLayoutBinding
 import com.az.androiddrivepreview.databinding.UploadFileDialogLayoutBinding
 
@@ -14,7 +16,7 @@ import com.az.androiddrivepreview.databinding.UploadFileDialogLayoutBinding
  * @property context
  * @constructor Create empty Create file dialog
  */
-class Dialogs(private val context: Context) {
+class Dialogs(private val context: Context, private var darkMode: Boolean) {
     private lateinit var mCreateFolderDialog : Dialog
     private lateinit var mUploadFileDialog : Dialog
     private lateinit var createFolderBinding : CreateFolderDialogLayoutBinding
@@ -29,13 +31,14 @@ class Dialogs(private val context: Context) {
      * @param callback
      * @receiver
      */
-    fun showCreateFolderDialog(callback : (folderName : String) -> Unit){
+    fun showCreateFolderDialog(callback: (folderName: String) -> Unit){
         mCreateFolderDialog = Dialog(context)
         createFolderBinding = CreateFolderDialogLayoutBinding.inflate(LayoutInflater.from(context))
         mCreateFolderDialog.setCancelable(true)
         mCreateFolderDialog.setCanceledOnTouchOutside(true)
         mCreateFolderDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         mCreateFolderDialog.setContentView(createFolderBinding.root)
+
         createFolderBinding.apply {
             btnCreateFolder.setOnClickListener {
                 showLoadingButton()
@@ -47,6 +50,72 @@ class Dialogs(private val context: Context) {
             }
             btnCancel.setOnClickListener {
                 hideCreateFolderDialog()
+            }
+            if (darkMode) {
+                mainCard.setCardBackgroundColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.colorSecondaryDark
+                    )
+                )
+                etNewFolderName.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.white
+                    )
+                )
+                etNewFolderName.setHintTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.white
+                    )
+                )
+                tvTitle.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.white
+                    )
+                )
+                btnCreateFolder.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.white
+                    )
+                )
+
+
+            }
+            else {
+                mainCard.setCardBackgroundColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.white
+                    )
+                )
+                etNewFolderName.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.black
+                    )
+                )
+                etNewFolderName.setHintTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.black
+                    )
+                )
+                tvTitle.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.black
+                    )
+                )
+                btnCreateFolder.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.black
+                    )
+                )
             }
         }
         createFolderBinding.btnCreateFolder.text  = buildString{
@@ -78,7 +147,17 @@ class Dialogs(private val context: Context) {
         uploadFileBinding.etFileName.setText(fileName)
 
         uploadFileBinding.apply {
-
+            if (darkMode) {
+                cardMain.setCardBackgroundColor(ContextCompat.getColor(context, R.color.colorSecondaryDark))
+                etFileName.setTextColor(ContextCompat.getColor(context, R.color.white))
+                btnUploadFile.setTextColor(ContextCompat.getColor(context, R.color.white))
+                tvTitle.setTextColor(ContextCompat.getColor(context, R.color.white))
+            } else{
+                cardMain.setCardBackgroundColor(ContextCompat.getColor(context, R.color.white))
+                etFileName.setTextColor(ContextCompat.getColor(context, R.color.black))
+                btnUploadFile.setTextColor(ContextCompat.getColor(context, R.color.black))
+                tvTitle.setTextColor(ContextCompat.getColor(context, R.color.black))
+            }
             btnUploadFile.setOnClickListener {
                 showUploadLoadingButton()
                 callback.invoke()
@@ -97,6 +176,10 @@ class Dialogs(private val context: Context) {
     fun hideUploadFileDialog(toastMessage : String?){
         this.mUploadFileDialog.hide()
         if (toastMessage != null) Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
+    }
+
+    fun setDarkMode(darkMode: Boolean) {
+        this.darkMode = darkMode
     }
 
 }

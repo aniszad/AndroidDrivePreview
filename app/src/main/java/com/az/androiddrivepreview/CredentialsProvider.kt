@@ -1,6 +1,6 @@
 package com.az.androiddrivepreview
 
-import com.az.androiddrivepreview.data.managers.GdCredentialsProvider
+import com.az.androiddrivepreview.data.interfaces.GdCredentialsProvider
 import java.io.FileNotFoundException
 import java.io.InputStream
 

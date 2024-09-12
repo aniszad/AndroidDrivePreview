@@ -1,10 +1,13 @@
 package com.az.androiddrivepreview.api
 
 import android.content.Context
+import android.net.Uri
 import android.os.Environment
 import android.util.Log
+import androidx.core.net.toUri
+import androidx.documentfile.provider.DocumentFile
 import com.az.androiddrivepreview.data.exceptions.DriveDownloadException
-import com.az.androiddrivepreview.data.managers.GdCredentialsProvider
+import com.az.androiddrivepreview.data.interfaces.GdCredentialsProvider
 import com.az.androiddrivepreview.data.models.FileDriveItem
 import com.az.androiddrivepreview.data.models.ItemType
 import com.az.androiddrivepreview.utils.NotificationLauncher
@@ -19,9 +22,8 @@ import com.google.auth.http.HttpCredentialsAdapter
 import com.google.auth.oauth2.GoogleCredentials
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.FileOutputStream
 import java.io.IOException
-import java.io.OutputStream
+import java.net.URLConnection
 
 
 /**
@@ -33,14 +35,17 @@ import java.io.OutputStream
  *
  * @param gdCredentialsProvider
  */
-class GoogleDriveApi(private val context : Context,
-                     gdCredentialsProvider : GdCredentialsProvider,
-                     private val notificationLauncher: NotificationLauncher,
-                     private val appName : String) {
+class GoogleDriveApi(
+    private val context: Context,
+    gdCredentialsProvider: GdCredentialsProvider,
+    private val notificationLauncher: NotificationLauncher,
+    private val appName: String
+) {
 
     private var driveService: Drive
     private var googleCredentials: GoogleCredentials
-    private var downloadsDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.path
+    private var downloadsDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.toUri()
+        ?: context.filesDir.toUri()
 
 
     companion object {
@@ -48,6 +53,7 @@ class GoogleDriveApi(private val context : Context,
             GsonFactory.getDefaultInstance()
         val SCOPES = listOf(DriveScopes.DRIVE)
     }
+
     init {
         // getting the input stream of the credentials file
         val credentialsInputStream = gdCredentialsProvider.getCredentials()
@@ -109,7 +115,11 @@ class GoogleDriveApi(private val context : Context,
             }
             queryResultList
         } catch (e: IOException) {
-            Log.e("ERROR WHILE GETTING FILES", "An error occurred while fetching files: ${e.message}", e)
+            Log.e(
+                "ERROR WHILE GETTING FILES",
+                "An error occurred while fetching files: ${e.message}",
+                e
+            )
             null
         }
     }
@@ -157,7 +167,11 @@ class GoogleDriveApi(private val context : Context,
             }
             queryResultList
         } catch (e: IOException) {
-            Log.e("ERROR WHILE QUERYING FILES", "An error occurred while fetching files: ${e.message}", e)
+            Log.e(
+                "ERROR WHILE QUERYING FILES",
+                "An error occurred while fetching files: ${e.message}",
+                e
+            )
             null
         }
     }
@@ -168,17 +182,25 @@ class GoogleDriveApi(private val context : Context,
      * @param folderId
      * @return
      */
-    suspend fun deleteFolder(folderId: String) : Boolean{
-        return try{
-            withContext(Dispatchers.IO){
+    suspend fun deleteFolder(folderId: String): Boolean {
+        return try {
+            withContext(Dispatchers.IO) {
                 driveService.files().delete(folderId).execute()
             }
             true
-        }catch (e : IOException){
-            Log.e("ERROR WHILE DELETING FILES", "An error occurred while fetching files: ${e.message}", e)
+        } catch (e: IOException) {
+            Log.e(
+                "ERROR WHILE DELETING FILES",
+                "An error occurred while fetching files: ${e.message}",
+                e
+            )
             false
-        }catch (e : Exception){
-            Log.e("ERROR WHILE DELETING FILES", "An error occurred while fetching files: ${e.message}", e)
+        } catch (e: Exception) {
+            Log.e(
+                "ERROR WHILE DELETING FILES",
+                "An error occurred while fetching files: ${e.message}",
+                e
+            )
             false
         }
     }
@@ -193,9 +215,9 @@ class GoogleDriveApi(private val context : Context,
      * @return ItemType.FOLDER if the MIME type indicates a folder, ItemType.FILE otherwise.
      */
     private fun fileOrDirectory(mimeType: String): ItemType {
-        return if (mimeType == "application/vnd.google-apps.folder"){
+        return if (mimeType == "application/vnd.google-apps.folder") {
             ItemType.FOLDER
-        }else{
+        } else {
             ItemType.FILE
         }
     }
@@ -207,30 +229,43 @@ class GoogleDriveApi(private val context : Context,
      * @param parentFolderId
      * @return
      */
-    suspend fun createFolder(folderName: String, parentFolderId : String): String? {
+    suspend fun createFolder(folderName: String, parentFolderId: String): String? {
         return try {
             val fileMetadata = File()
             fileMetadata.name = folderName
             fileMetadata.mimeType = "application/vnd.google-apps.folder"
             fileMetadata.parents = listOf(parentFolderId)
             val createdFile = withContext(Dispatchers.IO) {
-                    driveService.files().create(fileMetadata).execute()
+                driveService.files().create(fileMetadata).execute()
             }
             createdFile?.id
         } catch (e: IOException) {
-            Log.e("ERROR WHILE FILE CREATION", "An error occurred while fetching files: ${e.message}", e)
+            Log.e(
+                "ERROR WHILE FILE CREATION",
+                "An error occurred while fetching files: ${e.message}",
+                e
+            )
             null
         } catch (e: SecurityException) {
-            Log.e("ERROR WHILE FILE CREATION", "An error occurred while fetching files: ${e.message}", e)
+            Log.e(
+                "ERROR WHILE FILE CREATION",
+                "An error occurred while fetching files: ${e.message}",
+                e
+            )
             null
         } catch (e: Exception) {
-            Log.e("ERROR WHILE FILE CREATION", "An error occurred while fetching files: ${e.message}", e)
+            Log.e(
+                "ERROR WHILE FILE CREATION",
+                "An error occurred while fetching files: ${e.message}",
+                e
+            )
             null
         }
     }
 
     /**
      * Download file from drive
+     * only uses uri provided by SAF
      *
      * @param fileId
      * @param fileName
@@ -242,21 +277,45 @@ class GoogleDriveApi(private val context : Context,
     ) {
         withContext(Dispatchers.IO) {
             try {
-                // Construct the full path including subdirectories
-                val fullPath = currentNamesPath.fold(downloadsDir?.let { java.io.File(it) }) { acc, folder ->
-                    java.io.File(acc, folder).also { it.mkdirs() }
+                val mimeType = URLConnection.guessContentTypeFromName(fileName)
+                    ?: "*/*"  // Fallback to wildcard
+                var parentDocument = DocumentFile.fromTreeUri(context, downloadsDir)
+
+                if (parentDocument == null || !parentDocument.exists()) {
+                    Log.e("SAF", "Root directory does not exist!")
+                    return@withContext
                 }
-                val filePath = java.io.File(fullPath, fileName)
+                for (folder in currentNamesPath) {
+                    val existingDir = parentDocument?.findFile(folder)
+                    parentDocument = existingDir ?: parentDocument?.createDirectory(folder)
+                }
+                val targetFile = parentDocument?.findFile(fileName)
+                    ?: parentDocument?.createFile(
+                        mimeType,
+                        fileName
+                    )  // Use dynamically detected MIME type
 
-                Log.e("filepath", filePath.absolutePath + "///" + context.filesDir.absolutePath)
+                notificationLauncher.startNotification(
+                    fileName,
+                    "Download started",
+                    true,
+                    targetFile?.uri,
+                    mimeType
+                )
 
-                notificationLauncher.startNotification(fileName, "Download started", true)
+                if (targetFile != null) {
+                    context.contentResolver.openOutputStream(targetFile.uri)?.use { outputStream ->
+                        driveService.files().get(fileId).executeMediaAndDownloadTo(outputStream)
+                    }
 
-                val outputStream: OutputStream = FileOutputStream(filePath)
-                driveService.files().get(fileId).executeMediaAndDownloadTo(outputStream)
-                outputStream.close()
-
-                notificationLauncher.updateNotificationCompleted(fileName, "Download completed", false)
+                    notificationLauncher.updateNotificationCompleted(
+                        fileName,
+                        "Download completed",
+                        false
+                    )
+                } else {
+                    throw Exception("Failed to create file: $fileName")
+                }
             } catch (e: Exception) {
                 notificationLauncher.updateNotificationCompleted(fileName, "Download failed", false)
                 throw DriveDownloadException(e.stackTraceToString())
@@ -282,7 +341,7 @@ class GoogleDriveApi(private val context : Context,
 
         try {
             withContext(Dispatchers.IO) {
-                val fileCreation= driveService.files().create(fileMetadata, mediaContent)
+                val fileCreation = driveService.files().create(fileMetadata, mediaContent)
                     .setFields("id")
                     .execute()
                 println("File ID: ${fileCreation.id}")
@@ -300,7 +359,7 @@ class GoogleDriveApi(private val context : Context,
      *
      * @param downloadPath
      */
-    fun setDownloadPath(downloadPath: String) {
+    fun setDownloadPath(downloadPath: Uri) {
         this.downloadsDir = downloadPath
     }
 

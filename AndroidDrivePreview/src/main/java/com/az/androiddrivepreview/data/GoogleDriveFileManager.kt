@@ -35,8 +35,8 @@ import com.az.androiddrivepreview.api.GoogleDriveApi
 import com.az.androiddrivepreview.data.exceptions.DriveRootException
 import com.az.androiddrivepreview.data.exceptions.DriveUiElementsMissing
 import com.az.androiddrivepreview.data.exceptions.MimeTypeException
-import com.az.androiddrivepreview.data.managers.FilePickerListener
-import com.az.androiddrivepreview.data.managers.GdCredentialsProvider
+import com.az.androiddrivepreview.data.interfaces.FilePickerListener
+import com.az.androiddrivepreview.data.interfaces.GdCredentialsProvider
 import com.az.androiddrivepreview.data.models.FileDriveItem
 import com.az.androiddrivepreview.utils.Dialogs
 import com.az.androiddrivepreview.utils.NotificationLauncher
@@ -93,7 +93,7 @@ class GoogleDriveFileManager(
     private val currentIdsPath = mutableListOf<String>()
     private var currentNamesPath = mutableListOf("Drive Folder")
     private lateinit var toolbar: Toolbar
-    private val mCustomDialogs =  Dialogs(context)
+    private val mCustomDialogs =  Dialogs(context, darkMode)
     private lateinit var swipeRefreshLayout :   SwipeRefreshLayout
     private lateinit var recyclerView : RecyclerView
     private lateinit var rootFolderId : String
@@ -194,7 +194,11 @@ class GoogleDriveFileManager(
      */
     override fun onDownload(fileId: String, fileName : String) {
         lifecycleCoroutineScope.launch {
-            googleDriveApi.downloadFileFromDrive(fileId, fileName, currentNamesPath)
+            try {
+                googleDriveApi.downloadFileFromDrive(fileId, fileName, currentNamesPath)
+            }catch (e : Exception){
+                Toast.makeText(context, "download failed", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -617,7 +621,7 @@ class GoogleDriveFileManager(
      *
      * @param downloadPath
      */
-    fun setDownloadPath(downloadPath : String){
+    fun setDownloadPath(downloadPath : Uri){
         googleDriveApi.setDownloadPath(downloadPath)
     }
 
@@ -649,35 +653,56 @@ class GoogleDriveFileManager(
 
 
     fun setThemeMode(darkMode: Boolean): GoogleDriveFileManager {
-        this.darkMode = darkMode
-        adapter.setDarkMode(darkMode)
+        return try {
+            this.darkMode = darkMode
+            mCustomDialogs.setDarkMode(darkMode)
+            adapter.setDarkMode(darkMode)
 
-        val textColor = if (darkMode) Color.WHITE else Color.BLACK
-        val iconTintColor = if (darkMode) Color.WHITE else Color.BLACK
-        val hintColor = if (darkMode) Color.WHITE else Color.DKGRAY
+            val textColor = if (darkMode) Color.WHITE else Color.BLACK
+            val iconTintColor = if (darkMode) Color.WHITE else Color.BLACK
+            val hintColor = if (darkMode) Color.WHITE else Color.DKGRAY
 
-        toolbar.setTitleTextColor(textColor)
-        toolbar.navigationIcon?.setTintList(ColorStateList.valueOf(iconTintColor))
+            toolbar.setTitleTextColor(textColor)
+            toolbar.navigationIcon?.setTintList(ColorStateList.valueOf(iconTintColor))
 
-        val searchItem = toolbar.menu.findItem(R.id.btn_search)
-        val btnCreateFolder = toolbar.menu.findItem(R.id.btn_create_folder)
-        val btnContribute = toolbar.menu.findItem(R.id.btn_create_file)
-        val searchView = searchItem.actionView as SearchView
+            val searchItem = toolbar.menu.findItem(R.id.btn_search)
+            val btnCreateFolder = toolbar.menu.findItem(R.id.btn_create_folder)
+            val btnContribute = toolbar.menu.findItem(R.id.btn_create_file)
+            val searchView = searchItem.actionView as SearchView
 
-        searchView.queryHint = "search"
+            searchView.queryHint = "search"
 
-        val editText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
-        editText.setTextColor(textColor)
-        editText.setHintTextColor(hintColor)
+            val editText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
+            editText.setTextColor(textColor)
+            editText.setHintTextColor(hintColor)
 
-        val closeButton = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_close_btn)
-        val searchButton = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_button)
-        closeButton.imageTintList = ColorStateList.valueOf(iconTintColor)
-        searchButton.imageTintList = ColorStateList.valueOf(iconTintColor)
-        btnContribute.iconTintList = ColorStateList.valueOf(iconTintColor)
-        btnCreateFolder.iconTintList = ColorStateList.valueOf(iconTintColor)
+            val closeButton = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_close_btn)
+            val searchButton = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_button)
+            when (this.permissions) {
+                Permissions.ADMIN -> {
+                    closeButton.imageTintList = ColorStateList.valueOf(iconTintColor)
+                    searchButton.imageTintList = ColorStateList.valueOf(iconTintColor)
+                    btnContribute.iconTintList = ColorStateList.valueOf(iconTintColor)
+                    btnCreateFolder.iconTintList = ColorStateList.valueOf(iconTintColor)
+                }
+                Permissions.USER ->{
+                    closeButton.imageTintList = ColorStateList.valueOf(iconTintColor)
+                    searchButton.imageTintList = ColorStateList.valueOf(iconTintColor)
+                    btnContribute.iconTintList = ColorStateList.valueOf(iconTintColor)
+                    btnCreateFolder.iconTintList = ColorStateList.valueOf(iconTintColor)
+                }
+                Permissions.STRICT ->{
+                    closeButton.imageTintList = ColorStateList.valueOf(iconTintColor)
+                    searchButton.imageTintList = ColorStateList.valueOf(iconTintColor)
+                }
+            }
 
-        return this@GoogleDriveFileManager
+
+            this@GoogleDriveFileManager
+        }catch (e: Exception){
+            Log.e("DarkMode", e.stackTraceToString())
+            this@GoogleDriveFileManager
+        }
     }
     /**
      * Upload file to drive

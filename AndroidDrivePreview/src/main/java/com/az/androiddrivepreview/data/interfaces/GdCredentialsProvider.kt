@@ -1,4 +1,4 @@
-package com.az.androiddrivepreview.data.managers
+package com.az.androiddrivepreview.data.interfaces
 
 import java.io.InputStream
 

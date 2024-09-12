@@ -11,6 +11,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.Parcelable
+import android.os.storage.StorageManager
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Log
@@ -46,16 +48,16 @@ class MainActivity : AppCompatActivity() {
                 Intent.FLAG_GRANT_READ_URI_PERMISSION or
                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             )
-            if (isFolderNameCorrect(uri)){
-                sharedPref.isDownloadFolderAccessGranted = true
-                gdm.setDownloadPath(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).path+ "/${
-                    getString(
-                        R.string.app_name
-                    )
-                }")
-            }else{
-                Toast.makeText(this@MainActivity, "Please select the correct folder $uri", Toast.LENGTH_SHORT).show()
-            }
+            sharedPref.isDownloadFolderAccessGranted = true
+            // ONLY USE SAF PROVIDED URI
+            gdm.setDownloadPath(uri)
+
+//            if (isFolderNameCorrect(uri)){
+//                sharedPref.isDownloadFolderAccessGranted = true
+//                gdm.setDownloadPath(uri)
+//            }else{
+//                Toast.makeText(this@MainActivity, "Please select the correct folder $uri", Toast.LENGTH_SHORT).show()
+//            }
 
         } else {
             Log.e("FolderAccess", "Permission denied, cannot create folder. Downloads are not possible.")
@@ -100,7 +102,7 @@ class MainActivity : AppCompatActivity() {
         gdm.setRecyclerView(binding.recyclerView) // set recycler view to display files
             .setActionBar(binding.toolbar) // set toolbar to display file name, actions, path
             .setRootFileId("1ZEmBUIPWUXr_nae82N7qQHudIFwaxRe5") // the id of the drive file to be displayed
-            .setRootFolderName("Files Bank") // the root file name
+            .setRootFolderName("root_file_title") // the root file name
             .activateNavigationPath(false) // set to true to display the path of the current directory
             .setFilePathCopyable(true) // set to true to allow the user to copy the path of the current directory
             .setThemeMode(true)
@@ -126,7 +128,7 @@ class MainActivity : AppCompatActivity() {
          * "context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.path"
          *
          */
-        //setupDownloadFolder()
+        setupDownloadFolder()
 
     }
 
@@ -158,7 +160,6 @@ class MainActivity : AppCompatActivity() {
         }
         try {
             val folderUri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-            Log.e("FolderCreation", "$folderUri")
             if (folderUri!=null){
                 openFolderForAccess(folderUri)
             }
@@ -168,11 +169,22 @@ class MainActivity : AppCompatActivity() {
     }
     private fun openFolderForAccess(folderUri: Uri) {
         try {
-            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-                .putExtra(DocumentsContract.EXTRA_INITIAL_URI, folderUri)
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                putExtra(DocumentsContract.EXTRA_INITIAL_URI, folderUri)
+            }
             activityDownloadFolderAccessResultLauncher.launch(intent)
         } catch (e: ActivityNotFoundException) {
-            Log.e("FolderAccess", "No activity found to handle the intent")
+            Log.e("FolderAccess", "No activity found to handle the intent", e)
+        }
+    }
+
+    inline fun <reified T : Parcelable> Intent.getParcelableExtraExt(key: String): T? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getParcelableExtra(key, T::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            getParcelableExtra(key) as? T
         }
     }
     private fun requestFolderCreationPermission() {
@@ -191,10 +203,5 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return true
-    }
-    private fun isFolderNameCorrect(uri: Uri): Boolean {
-        val documentFile = DocumentFile.fromTreeUri(this@MainActivity, uri)
-        val folderName = documentFile?.name
-        return folderName == getString(R.string.app_name)
     }
 }
