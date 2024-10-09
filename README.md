@@ -30,7 +30,7 @@ dependencyResolutionManagement {
 2.Add the following lines to your root `build.gradle` file:
 ```gradle
 dependencies {
-    implementation 'com.github.aniszad:AndroidDrivePreview:latest-version' // latest version for now : 1.0.0
+    implementation 'com.github.aniszad:AndroidDrivePreview:latest-version' // latest version for now : 1.0.6
 }
 ```
 
@@ -41,15 +41,15 @@ dependencies {
 val gdm = GoogleDriveFileManager(
     this@MainActivity,
     lifecycleScope, // Lifecycle scope for launching coroutines
-    Permissions.ADMIN, // Specify the permission level
+    Permissions.USER, // Specify the permission level
     CredentialsProvider() // Provide credentials for authentication
 )
 
 // Set the recycler view, toolbar, root file ID, root folder name, and file picker listener
 gdm.setRecyclerView(binding.recyclerView) // Set the recycler view to display files
     .setActionBar(binding.toolbar) // Set the toolbar to display file name, actions, path
-    .setRootFileId("1ZEmBUIPWUXr_nae82N7qQHudIFwaxRe5") // Set the ID of the root Drive file to be displayed
-    .setRootFolderName("Files Bank") // Set the name of the root folder
+    .setRootFileId("drive-file-id") // Set the ID of the root Drive file to be displayed
+    .setRootFolderName("title") // Set the name of the root folder
     .activateNavigationPath(false) // Set to true to display the path of the current directory
     .setFilePathCopyable(true) // Set to true to allow the user to copy the path of the current directory
     .initialize() // Initialize the GoogleDriveFileManager
