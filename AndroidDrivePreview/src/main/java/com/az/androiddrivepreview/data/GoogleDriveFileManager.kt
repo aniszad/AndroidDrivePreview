@@ -197,6 +197,7 @@ class GoogleDriveFileManager(
             try {
                 googleDriveApi.downloadFileFromDrive(fileId, fileName, currentNamesPath)
             }catch (e : Exception){
+                Log.e("DRIVE_DOWNLOAD", e.stackTraceToString())
                 Toast.makeText(context, "download failed", Toast.LENGTH_SHORT).show()
             }
         }
